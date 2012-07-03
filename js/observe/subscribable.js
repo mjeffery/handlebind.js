@@ -1,4 +1,4 @@
-define(['lib/underscore', 'Subscription'], function(_, Subscription) {
+define(['lib/underscore', 'util/arrays', 'Subscription'], function(_, arrays, Subscription) {
 	
 	_.mixin({
 		"isSubscribable": function(instance) {
@@ -16,7 +16,7 @@ define(['lib/underscore', 'Subscription'], function(_, Subscription) {
 			var boundCallback = callbacktarget ? callback.bind(callbackTarget) : callback;
 			
 			var subscription = new Subscription(this, boundCallback, function() {
-				//TODO remove from event array
+				arrays.remove(this._subscriptions[event], subscription);
 			}.bind(this));
 			
 			if(!this._subscriptions[event])

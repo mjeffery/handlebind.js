@@ -1,4 +1,4 @@
-define(['lib/underscore', 'subscribable'], function(_, subscribable) {
+define(['lib/underscore', 'subscribable', 'dependencyDetection'], function(_, subscribable, dependencyDetection) {
 	
 	var primitiveTypes = { 'undefined':true, 'boolean':true, 'number':true, 'string':true }
 	
@@ -17,7 +17,9 @@ define(['lib/underscore', 'subscribable'], function(_, subscribable) {
 				return this;
 			}
 			else {
-				
+				// Read
+				dependencyDetection.registerDependency(observable);
+				return _latestValue;
 			}
 		}
 		

@@ -8,9 +8,10 @@
 	</head>
 	<body>
 		<script type="text/x-handlebars" id="test-template">
-			<a href='#' {{action "onClick"}}>click me!</a>
+			<label>First Name:</label>&nbsp;{{{value firstName}}}</br>
+			<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
+			<label>Name:</label>&nbsp;{{{value fullName}}}
 		</script>
-		<b class='testing'>Control</b>
 	</body>
 	<script>
 		var source = $('#test-template').html();

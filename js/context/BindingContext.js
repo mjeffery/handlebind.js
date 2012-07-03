@@ -1,7 +1,7 @@
 define(['lib/underscore'], function(_) {
-	return function() {
-		this['$root'] = this;
-		this['$parent'] = null;
+	return function(target) {
+		
+		this.target = target;
 		
 		this.find = function(path) {
 			var elements, context, i;
