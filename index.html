@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+		<script src="js/lib/handlebars.js" type="text/javascript"></script>
+		<script src="js/lib/underscore.js" type="text/javascript"></script>
+		<script src="js/handlebind.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<script type="text/x-handlebars" id="test-template">
+			<a href='#' {{action "onClick"}}>click me!</a>
+		</script>
+		<b class='testing'>Control</b>
+	</body>
+	<script>
+		var source = $('#test-template').html();
+		var template = Handlebars.compile(source);
+		
+		var context = new BindingContext();
+		context.onClick = function(event) {
+			alert("I've been clicked!");
+		}
+		
+		binder.currentContext = context;
+		$(template(context)).appendTo('body');
+		binder.afterDomAttached();
+		
+		$('.testing').on('click', function(event) {
+			alert('Clicked on Control');
+		});
+		
+	</script>
+</html>
