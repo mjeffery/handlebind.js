@@ -17,18 +17,14 @@ function(_, $, Handlebars, binder, subscribable, dependencyDetection) {
 						endId = prefix + '-end';
 						
 					var ret = "<script id='" + startId + "' type='text/x-placeholder'></script>";
-					try {
-						dependencyDetection.begin(function(subscription) {
-							//TODO delegate this to the view-- will defer all changes to coalesce events
-							var start = $('script#' + startId);
-							$(start).nextUntil('script#' + endId).remove();
-							start.append(Handlebars.Utils.escapeExpression(proceed(context(), options)));
-						});
-						ret = ret + Handlebars.Utils.escapeExpression(proceed(context(), options)); //ensure that the string is properly escaped
-					}
-					finally {
-						dependencyDetection.end();
-					}
+
+					context.subscribe(function(subscription) {
+						//TODO delegate this to the view-- will defer all changes to coalesce events
+						var start = $('script#' + startId);
+						$(start).nextUntil('script#' + endId).remove();
+						start.append(Handlebars.Utils.escapeExpression(proceed(context(), options)));
+					});
+					ret = ret + Handlebars.Utils.escapeExpression(proceed(context(), options)); //ensure that the string is properly escaped
 					
 					return new Handlebars.SafeString(ret + "<script id='" + endId + "' type='text/x-placeholder'></script>"); 
 					

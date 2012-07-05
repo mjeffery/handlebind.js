@@ -24,8 +24,20 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 					return this.firstName() + ' ' + this.lastName();
 				}, this);
 			}
-			
-		var view = new View('test-template', new ViewModel());
-		view.appendTo('body');
+		
+		var viewModel = new ViewModel();
+		var view = new View('test-template', viewModel);
+		view.appendTo('#app-container');
+		
+		$('#toggle-names').on('click', function() {
+			var first = viewModel.firstName();
+			if(first === 'belinda')
+				viewModel.firstName('tim');
+			else
+				viewModel.firstName('belinda');
+				
+			console.log('first: ' + viewModel.firstName());
+			console.log('name: ' + viewModel.fullName());
+		})
 	});
 })
