@@ -31,7 +31,7 @@ define(['context/BindingContext'], function(BindingContext) {
 			if(_isBinding)
 				this.error("Cannot start binding a new context, Binder is already started");
 			else {
-				this.isBinding = true;
+				_isBinding = true;
 				this.pushContext(context);
 			}
 		};
@@ -52,27 +52,21 @@ define(['context/BindingContext'], function(BindingContext) {
 		};
 		
 		this.end = function() {
-			if(!this.isBinding)
+			if(!_isBinding)
 				this.error("Cannot end binding, Binder is not binding any context.  Call binder.start(context) to begin binding a context");
 			else {
-				this.isBinding = false;
+				_isBinding = false;
 				//TODO assemble View with root context from pop()
 				this.popContext();
 			}	
 		};
 		
 		this.stopBinding = function() {
-			if(!_ignoreBindings)
 				_ignoreBindings = true;
-			else
-				throw new Error("Cannot stop binding when bindings are already ignored.  Call resumeBinding() first");
 		};
 		
 		this.resumeBinding = function() {
-			if(_ignoreBindings)
 				_ignoreBindings = false;
-			else
-				throw new Error("Cannot resume binding when bindings are not ignored.  Call stopBinding() first");
 		};
 		
 		this.ignoringBindings = function() { return _ignoreBindings }; 

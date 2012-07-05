@@ -3,13 +3,13 @@ function(_, $, Metamorph, subscribable, binder) {
 	
 	function BindingContext(target, content) {
 		
-		this._bindingActive = !binder.ignoringBindings();
+		this._doNotBind = !binder.ignoringBindings();
 		
 		if(_.isFunction(target)) {
 			this.target = target;
 			this._isBound = false;
 			
-			if(this._bindingActive && _.isSubscribable(target)) {
+			if(!this._doNotBind && _.isSubscribable(target)) {
 				this._isBound = true;
 				this._subscription = target.subscribe(function() { this.rebind() }, this); //TODO delegate this out to the coalescing function
 			}
@@ -23,6 +23,7 @@ function(_, $, Metamorph, subscribable, binder) {
 		this._content = content; //TODO check that content is a function-- if not, functionify it
 	}
 	
+
 	_.extend(BindingContext.prototype, {
 		
 		isDirty: function() {
@@ -32,23 +33,40 @@ function(_, $, Metamorph, subscribable, binder) {
 				return this._isDirty;
 		},
 		
+		_bindingWrapper: function(proceed) {
+			if(this._doNotBind) {
+				binder.stopBinding();
+				var ret = proceed();
+				binder.resumeBinding();
+				
+				return ret;
+			}
+			else
+				return proceed();
+		},
+		
 		bindContent: function() {
 			if(binder.context() !== this) //TODO this is a controversial check... maybe just error if the context isn't on top of the stack
 				binder.pushContext(this);
-				
+			if(this._doNotBind)
+				binder.stopBinding();	
+	
+			var ret = "";
+
 			if(this._isBound) {
 				if(!this['_metamorph']) {
 					var html = this._content(this.target());
 					this._metamorph = new Metamorph(html);	  
 					     
-	       			return new Handlebars.SafeString(this._metamorph.outerHTML());
+	       			ret = new Handlebars.SafeString(this._metamorph.outerHTML());
 	       		}
 	       		else
-	       			return this['_metamorph'].outerHTML();
+	       			ret = this['_metamorph'].outerHTML();
 	    	}	
-	    	else {
-	    		return this._content(this.target());
-	    	} 
+	    	else 
+	    		ret = this._content(this.target());
+	    	
+	    	return ret;
 		},
 		
 		rebind: function() {
@@ -56,7 +74,13 @@ function(_, $, Metamorph, subscribable, binder) {
 				this.disposeChildren();
 				
 				binder.resume(this);
-				this._metamorph.html(Handlebars.Utils.escapeExpression(this._content(this.target()))); 
+				if(this._doNotBind)
+					binder.stopBinding();
+					
+				this._metamorph.html(Handlebars.Utils.escapeExpression(this._content(this.target())));
+				
+				if(this._doNotBind)
+					binder.resumeBinding(); 
 				binder.end();
 			}
 		},

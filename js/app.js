@@ -24,6 +24,8 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 					return '<b>' + this.firstName() + ' ' + this.lastName() + '</b>';
 				}, this);
 				
+				this.showNested = hb.observable(false);
+				
 				this.nested = {
 					firstName: hb.observable('lola'),
 					lastName: hb.observable('perkins')
@@ -46,6 +48,10 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 				
 			console.log('first: ' + viewModel.firstName());
 			console.log('name: ' + viewModel.fullName());
+		});
+		
+		$('#toggle-nested').on('click', function() {
+			viewModel.showNested(viewModel.showNested());
 		})
 	});
 })
