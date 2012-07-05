@@ -36,7 +36,7 @@ function(_, $, Handlebars, BindingContext, binder) {
 			//TODO bind/util wrap this for high level changes?  
 			
 			binder.start(this._context);
-			$(this._template(this._context.target)).appendTo(elementOrSelector);
+			$(this._template(this._context.target())).appendTo(elementOrSelector);
 			binder.end(); //TODO pass 'this' to end so it can perform the after insertion tasks
 			
 			this._attachedToDom = true;

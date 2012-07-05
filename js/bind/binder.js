@@ -24,7 +24,7 @@ define(['context/BindingContext'], function(BindingContext) {
 		};
 		
 		this.popContext = function() { return _stack.length > 0 ? _stack.pop() : null };
-		this.context = function() { return stack.length > 0 ? _stack[_stack.length - 1] : null };
+		this.context = function() { return _stack.length > 0 ? _stack[_stack.length - 1] : null };
 		
 		
 		this.start = function(context) {
@@ -33,6 +33,21 @@ define(['context/BindingContext'], function(BindingContext) {
 			else {
 				this.isBinding = true;
 				this.pushContext(context);
+			}
+		};
+		
+		this.resume = function(context) {
+			if(_isBinding) 
+				this.error("Cannot resume binding, Binder is already started");
+			else {
+				_stack = [];
+				while(context['$parent'] != null) {
+					_stack.push(context);
+					context = context['$parent'];	
+				}
+				_stack = _stack.reverse();
+				
+				_isBinding = true;
 			}
 		};
 		
