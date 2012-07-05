@@ -13,7 +13,7 @@ define(['lib/underscore', 'util/arrays', './Subscription'], function(_, arrays, 
 		
 		this.subscribe = function(callback, callbackTarget, event) {
 			event = event || defaultEvent;
-			var boundCallback = callbacktarget ? callback.bind(callbackTarget) : callback;
+			var boundCallback = callbackTarget ? callback.bind(callbackTarget) : callback;
 			
 			var subscription = new Subscription(this, boundCallback, function() {
 				arrays.remove(this._subscriptions[event], subscription);

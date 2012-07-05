@@ -21,7 +21,7 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 				this.firstName = hb.observable("tim");
 				this.lastName =  hb.observable("schaffer");
 				this.fullName =  hb.computed(function() {
-					return this.firstName + ' ' + this.lastName;
+					return this.firstName() + ' ' + this.lastName();
 				}, this);
 			}
 			

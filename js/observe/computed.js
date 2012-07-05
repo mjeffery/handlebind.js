@@ -108,13 +108,13 @@ function(_, subscribable, observable, dependencyDetection) {
 				dependencyDetection.registerDependency(computed);
 				return _latestValue;
 			}
-		}
+		};
 		
 		computed.peek = function() {
 			if(!_hasBeenEvaluated)
 				evaluateImmediate();
 			return _latestValue;
-		}
+		};
 		
 		computed.getDependenciesCount = function() { return _subscriptionsToDependencies.length };
 		computed.hasWriteFunction = typeof options["write"] === "function";
@@ -126,5 +126,7 @@ function(_, subscribable, observable, dependencyDetection) {
 			evaluateImmediate();
 			
 		//TODO isComputed
+		
+		return computed;
 	}
 });
