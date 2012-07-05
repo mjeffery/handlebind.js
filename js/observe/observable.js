@@ -1,4 +1,4 @@
-define(['lib/underscore', 'subscribable', 'dependencyDetection'], function(_, subscribable, dependencyDetection) {
+define(['lib/underscore', './subscribable', './dependencyDetection'], function(_, subscribable, dependencyDetection) {
 	
 	var primitiveTypes = { 'undefined':true, 'boolean':true, 'number':true, 'string':true }
 	

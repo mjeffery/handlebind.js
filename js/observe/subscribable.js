@@ -1,4 +1,4 @@
-define(['lib/underscore', 'util/arrays', 'Subscription'], function(_, arrays, Subscription) {
+define(['lib/underscore', 'util/arrays', './Subscription'], function(_, arrays, Subscription) {
 	
 	_.mixin({
 		"isSubscribable": function(instance) {

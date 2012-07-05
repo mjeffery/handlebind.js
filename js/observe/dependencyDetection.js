@@ -1,10 +1,10 @@
-define(['lib/underscore', 'subscribable'], function(_) {
+define(['lib/underscore', './subscribable'], function(_) {
 	
 	var _frames = [];
 	
 	return {
 		begin: function(callback) {
-			_frames.push({ callback: callback, distictDependencies: []});
+			_frames.push({ callback: callback, distinctDependencies: []});
 		},
 		
 		end: function() {

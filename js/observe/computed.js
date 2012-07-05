@@ -1,7 +1,10 @@
-define(['lib/underscore', 'observable', 'dependencyDetection'], function(_, observable, dependencyDetection) {
+define(
+['lib/underscore', './subscribable', './observable', './dependencyDetection'], 
+function(_, subscribable, observable, dependencyDetection) {
 	return function(evaluatorFunctionOrOptions, evaluatorFunctionTarget, options) {
 		var _latestValue,
-			_hasBeenEvaluating = false,
+			_hasBeenEvaluated = false,
+			_isBeingEvaluated = false,
 			readFunction = evaluatorFunctionOrOptions;
 		
 		//single-parameter syntax - everything is on this "options" param

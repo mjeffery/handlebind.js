@@ -1,4 +1,4 @@
-define(['lib/underscore', 'observable', 'dependencyDetection'], function(_, observable, dependencyDetection) {
+define(['lib/underscore', './observable', './dependencyDetection'], function(_, observable, dependencyDetection) {
 	return function(initialValue) {
 		if(argument.length == 0) {
 			//No arg constructor initializes to empty array

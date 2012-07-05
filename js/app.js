@@ -17,11 +17,11 @@ require.config({
 
 require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 	$(document).ready(function() {
-		var ViewModel = new function() {
+		var ViewModel = function() {
 				this.firstName = hb.observable("tim");
 				this.lastName =  hb.observable("schaffer");
 				this.fullName =  hb.computed(function() {
-					return this.firstName + ' ' + lastName;
+					return this.firstName + ' ' + this.lastName;
 				}, this);
 			}
 			

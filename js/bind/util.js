@@ -1,5 +1,5 @@
 define(
-	['lib/underscore', 'lib/jquery', 'lib/handlebars', 'binder', 'observe/subscribable', 'observe/dependencyDetection'], 
+	['lib/underscore', 'lib/jquery', 'lib/handlebars', './binder', 'observe/subscribable', 'observe/dependencyDetection'], 
 
 function(_, $, Handlebars, binder, subscribable, dependencyDetection) {
 	var utils = {

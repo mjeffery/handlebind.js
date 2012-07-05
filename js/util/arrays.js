@@ -1,4 +1,4 @@
-define('lib/underscore', function(_) {
+define(['lib/underscore'], function(_) {
 	var arrays = {
 		remove: function(array, itemToRemove) {
 			var index = _.indexOf(array, itemToRemove);
@@ -10,4 +10,4 @@ define('lib/underscore', function(_) {
 	_.mixin(arrays);
 	
 	return arrays;
-})
+});
