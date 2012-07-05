@@ -1,4 +1,7 @@
-define(['observe/observable', 'observe/observableArray', 'observe/computed'], function(observable, observableArray, computed){
+define(
+['observe/observable', 'observe/observableArray', 'observe/computed',
+ 'bind/helpers/value', 'bind/helpers/html', 'bind/helpers/with', 'bind/helpers/unbound'], 
+function(observable, observableArray, computed) {
 	return {
 		observable: observable,
 		observableArray: observableArray,

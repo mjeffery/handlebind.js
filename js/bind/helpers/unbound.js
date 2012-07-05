@@ -6,6 +6,4 @@ define(['lib/handlebars', 'bind/binder'], function(Handlebars, binder) {
 		
 		return ret;
 	});
-	
-	return Handlebars; 
 });

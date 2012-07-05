@@ -38,7 +38,7 @@ function(_, $, Metamorph, subscribable, binder) {
 				
 			if(this._isBound) {
 				if(!this['_metamorph']) {
-					var html = Handlebars.Utils.escapeExpression(this._content(this.target()));
+					var html = this._content(this.target());
 					this._metamorph = new Metamorph(html);	  
 					     
 	       			return new Handlebars.SafeString(this._metamorph.outerHTML());
@@ -47,7 +47,7 @@ function(_, $, Metamorph, subscribable, binder) {
 	       			return this['_metamorph'].outerHTML();
 	    	}	
 	    	else {
-	    		return Handlebars.Utils.escapeExpression(this._content(this.target()));
+	    		return this._content(this.target());
 	    	} 
 		},
 		

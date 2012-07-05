@@ -6,24 +6,15 @@ define(
 	Handlebars.registerHelper('with', function(context, options) {
 		var ret = "";
 		if(context) {
-
-			if(_.isFunction(context)) {
-				if(_.isObservable(context)) {
-					
-				}
-					
-			}
+			var binding = new BindingContext(context, function(value) {
+				return options.fn(value);
+			});
 			
-			var newContext = new BindingContext(context);
-			binder.pushContext(newContext);
-			
-			//TODO listen for dependencies?
-			
-			ret = options.fn(context);
-			
-			//TODO stop listening for dependencies
-			
+			binder.pushContext(binding);
+			ret = binding.bindContent();
 			binder.popContext();
+			
+			return ret;
 		}
 		else 
 			ret = Handlebars.helpers['_nobind_with'].call(this, context, options);

@@ -21,8 +21,16 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 				this.firstName = hb.observable("tim");
 				this.lastName =  hb.observable("schaffer");
 				this.fullName =  hb.computed(function() {
-					return this.firstName() + ' ' + this.lastName();
+					return '<b>' + this.firstName() + ' ' + this.lastName() + '</b>';
 				}, this);
+				
+				this.nested = {
+					firstName: hb.observable('lola'),
+					lastName: hb.observable('perkins')
+				}
+				this.nested.fullName=  hb.computed(function() {
+					return '<b>' + this.firstName() + ' ' + this.lastName() + '</b>';
+				}, this.nested);
 			}
 		
 		var viewModel = new ViewModel();

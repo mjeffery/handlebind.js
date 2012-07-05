@@ -7,7 +7,14 @@
 		<script type="text/x-handlebars" id="test-template">
 			<label>First Name:</label>&nbsp;{{{value firstName}}}</br>
 			<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
-			<label>Name:</label>&nbsp;{{{value fullName}}}
+			<label>Name:</label>&nbsp;{{{value fullName}}}</br>
+			{{#unbound}}
+				{{#with nested}}
+					<label>First Name:</label>&nbsp;{{{value firstName}}}</br>
+					<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
+					<label>Name:</label>&nbsp;{{{html fullName}}}
+				{{/with}}
+			{{/unbound}}
 		</script>
 		<div id='app-container'></div></br>
 		<a id='toggle-names' href='javascript:void(0)'>Toggle the Names!</a>
