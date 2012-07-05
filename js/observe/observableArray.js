@@ -52,8 +52,31 @@ define(['lib/underscore', './observable', './dependencyDetection'], function(_, 
 			});
 		}
 		
-		//TODO detroy
-		//TODO destroyAll
-		//TODO etc see  https://github.com/SteveSanderson/knockout/blob/master/src/subscribables/observableArray.js
+		result.destroy = function(valueOrPredicate){
+			var underlyingArray = this.peek();
+	        var predicate = typeof valueOrPredicate == "function" ? valueOrPredicate : function (value) { return value === valueOrPredicate; };
+	        this.valueWillMutate();
+	        for (var i = underlyingArray.length - 1; i >= 0; i--) {
+	            var value = underlyingArray[i];
+	            if (predicate(value))
+	                underlyingArray[i]["_destroy"] = true;
+	        }
+	        this.valueHasMutated();
+		}
+		
+		result.destroyAll = function(arrayOfValues){
+			// If you passed zero args, we destroy everything
+	        if (arrayOfValues === undefined)
+	            return this['destroy'](function() { return true });
+	
+	        // If you passed an arg, we interpret it as an array of entries to destroy
+	        if (!arrayOfValues)
+	            return [];
+	        return this['destroy'](function (value) {
+	            return _.indexOf(arrayOfValues, value) >= 0;
+	        });
+		}
+		
+		return result();
 	}
 });
