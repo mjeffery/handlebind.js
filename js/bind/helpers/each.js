@@ -1,7 +1,7 @@
 define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Handlebars, BindingContext, binder) {
 	
 	Handlebars.helpers['_nobind_each'] = Handlebars.helpers['each'];
-	Handlebars.registerHelper('with', function(context, options) {
+	Handlebars.registerHelper('each', function(context, options) {
 		
 		var unbound = !!(options.hash['unbound']) || binder.ignoringBindings(),
 			ret = "";

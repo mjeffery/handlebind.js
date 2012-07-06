@@ -12,10 +12,11 @@
 				{{#with nested}}
 					<label>First Name:</label>&nbsp;{{{value firstName}}}</br>
 					<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
-					<label>Name:</label>&nbsp;{{{html fullName}}}
+					<label>Name:</label>&nbsp;{{{html fullName}}}</br>
 				{{/with}}
+				<a href='javascript:void(0)' {{{action toggleNames}}}>Toggle the Names!</a>
 			{{/if}}
-			<a href='javascript:void(0)' {{{action toggleNames}}}>Toggle the Names!</a>
+			</br>
 			<a href='javascript:void(0)' {{{action toggleNested}}}>Toggle Nested</a>
 		</script>
 		<div id='app-container'></div></br>

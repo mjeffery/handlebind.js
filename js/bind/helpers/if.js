@@ -15,7 +15,7 @@ define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Han
 			  	else 
 			    	result = options.fn(self);
 			    	
-			    return new Handlebars.SafeString(ret);
+			    return new Handlebars.SafeString(result);
 			});
 			binding.doNotBind = unbound;
 				
