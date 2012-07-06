@@ -3,10 +3,10 @@ function(_, $, Metamorph, subscribable, binder) {
 	
 	function BindingContext(target, content) {
 		
-		this._doNotBind = !binder.ignoringBindings();
+		this['$data'] = target;
+		this._doNotBind = binder.ignoringBindings();
 		
 		if(_.isFunction(target)) {
-			this.target = target;
 			this._isBound = false;
 			
 			if(!this._doNotBind && _.isSubscribable(target)) {
@@ -14,11 +14,9 @@ function(_, $, Metamorph, subscribable, binder) {
 				this._subscription = target.subscribe(function() { this.rebind() }, this); //TODO delegate this out to the coalescing function
 			}
 		}
-		else {
-			this.target = function() { return target; }
+		else 
 			this._isBound = false;
-		}
-		
+
 		this._isDirty = false;
 		this._content = content; //TODO check that content is a function-- if not, functionify it
 	}
@@ -26,23 +24,16 @@ function(_, $, Metamorph, subscribable, binder) {
 
 	_.extend(BindingContext.prototype, {
 		
+		target: function() {
+			var target = this['$data'];
+			return _.isFunction(target) ? target() : target;
+		},
+		
 		isDirty: function() {
 			if(arguments.length > 0) 
 				this._isDirty = arguments[0];
 			else 
 				return this._isDirty;
-		},
-		
-		_bindingWrapper: function(proceed) {
-			if(this._doNotBind) {
-				binder.stopBinding();
-				var ret = proceed();
-				binder.resumeBinding();
-				
-				return ret;
-			}
-			else
-				return proceed();
 		},
 		
 		bindContent: function() {
@@ -66,6 +57,9 @@ function(_, $, Metamorph, subscribable, binder) {
 	    	else 
 	    		ret = this._content(this.target());
 	    	
+	    	if(this._doNotBind)
+	    		binder.resumeBinding();
+	    		
 	    	return ret;
 		},
 		
@@ -86,10 +80,11 @@ function(_, $, Metamorph, subscribable, binder) {
 		},
 		
 		disposeChildren: function() {
-			var children = this['children'];
+			var children = this['children'].slice(0);
 			if(children && _.isArray(children)) {
 				_.each(this['children'], function(child) { child.dispose() });
 			}
+			this['children'].splice(0, children.length);
 		},
 		
 		dispose: function() {

@@ -77,6 +77,8 @@ define(['lib/underscore', './observable', './dependencyDetection'], function(_, 
 	        });
 		}
 		
-		return result();
+		//TODO finish copying over other observableArray code from knockout.js
+		
+		return result;
 	}
 });

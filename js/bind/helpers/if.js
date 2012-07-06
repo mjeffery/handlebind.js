@@ -7,12 +7,15 @@ define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Han
 			ret = "";
 			
 		if(context) {
+			var self = this;
 			var binding = new BindingContext(context, function(value) {
-				if(!value || Handlebars.Utils.isEmpty(value)) {
-			    	return options.inverse(this);
-			  	} else {
-			    	return options.fn(this);
-			  	}
+				var result = "";
+				if(!value || Handlebars.Utils.isEmpty(value))
+			    	result = options.inverse(self);
+			  	else 
+			    	result = options.fn(self);
+			    	
+			    return new Handlebars.SafeString(ret);
 			});
 			binding.doNotBind = unbound;
 				

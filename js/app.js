@@ -18,13 +18,31 @@ require.config({
 require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 	$(document).ready(function() {
 		var ViewModel = function() {
+				var self = this;
+			
 				this.firstName = hb.observable("tim");
 				this.lastName =  hb.observable("schaffer");
 				this.fullName =  hb.computed(function() {
 					return '<b>' + this.firstName() + ' ' + this.lastName() + '</b>';
 				}, this);
 				
-				this.showNested = hb.observable(false);
+				this.showNested = hb.observable(true);
+				
+				this.toggleNames = function() {
+					var first = self.firstName();
+					if(first === 'belinda')
+						self.firstName('tim');
+					else
+						self.firstName('belinda');
+						
+					console.log('first: ' + viewModel.firstName());
+					console.log('name: ' + viewModel.fullName());
+				};
+				
+				this.toggleNested = function() {
+					self.showNested(!self.showNested());
+					console.log('show:' + self.showNested());
+				};
 				
 				this.nested = {
 					firstName: hb.observable('lola'),
@@ -38,20 +56,5 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 		var viewModel = new ViewModel();
 		var view = new View('test-template', viewModel);
 		view.appendTo('#app-container');
-		
-		$('#toggle-names').on('click', function() {
-			var first = viewModel.firstName();
-			if(first === 'belinda')
-				viewModel.firstName('tim');
-			else
-				viewModel.firstName('belinda');
-				
-			console.log('first: ' + viewModel.firstName());
-			console.log('name: ' + viewModel.fullName());
-		});
-		
-		$('#toggle-nested').on('click', function() {
-			viewModel.showNested(viewModel.showNested());
-		})
 	});
 })
