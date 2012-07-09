@@ -1,6 +1,12 @@
 define(['lib/underscore', 'lib/jquery', 'util/metamorph', 'observe/subscribable', 'bind/binder'], 
 function(_, $, Metamorph, subscribable, binder) {
 	
+	var matchRoot = /^\$root\./i,	
+		matchLeadingParent = /^\$parent\.*/i,	
+		matchParentsIndexer = /^\$parents\[([0-9]){1,}\]\./i, // results[1] is the indexer value
+		matchFuncCall = /(.*?)\(\)/i, // matches a call with no-parameters
+		matchIndexer = /(.*?)\[([0-9]){1,}\]/i; // results[1] is property, results[2] is the index
+	
 	function BindingContext(target, content) {
 		
 		this['$data'] = target;
@@ -11,7 +17,8 @@ function(_, $, Metamorph, subscribable, binder) {
 			
 			if(!this._doNotBind && _.isSubscribable(target)) {
 				this._isBound = true;
-				this._subscription = target.subscribe(function() { this.rebind() }, this); //TODO delegate this out to the coalescing function
+				this._subscriptions = [];
+				this._subscriptions.push(target.subscribe(function() { this.rebind() }, this)); //TODO delegate this out to the coalescing function
 			}
 		}
 		else 
@@ -34,6 +41,84 @@ function(_, $, Metamorph, subscribable, binder) {
 				this._isDirty = arguments[0];
 			else 
 				return this._isDirty;
+		},
+		
+		get: function(path, context) {
+			if(_.isString(path) && path.length > 0) {
+				// the path should be a string of non-zero length
+
+				var matches;
+				
+				if(context === undefined)
+					context = this['$data'];
+
+				if(path.charAt(0) === '$') {
+					// path contains a control character-- check for context based 
+					
+					matches = path.match(matchRoot);
+					if(matches) {
+						// $root.
+						path = path.substr(matches[0].length - 1);
+						context = this['$root'];
+						
+						return this.get(path, context);
+					}
+					else {
+						// count parent indices using $parent.$parent
+						var parent_index = 0;	//index from 1 
+						matches = path.match(matchLeadingParent);
+						while(matches) {
+							parent_index++;
+							path = path.substr(matches[0].length - 1);						
+							matches = path.match(matchLeadingParent);
+						}
+						
+						matches = path.match(matchParentsIndexer);
+						if(matches) {
+							// $parents[i]. indexer
+							path = path.substr(matches[0].length - 1);	
+							parent_index += matches[1] + 1;	//index starts at 1		
+						}
+						
+						if(parent_index - 1 > 0) { //subtract 1 for actual index
+							context = this['$parents'][parent_index];
+							return this.get(path, context);
+						}
+					} // end matchers block
+				} // end '$' block
+				
+				var elements = path.split('.'), 
+					element;
+				for(var i=0, j=elements.length; i < j; i++) {
+					if(context === null || context === undefined)
+						return context;
+					else {
+						element = elements[i];
+						
+						matches = element.match(matchIndexer);
+						if(matches) {
+							// matches indexer
+							context = context[matches[1]];
+							if(context)
+								context = context[matches[2]];
+						}
+						else {
+							matches = element.match(matchFuncCall);
+							if(matches) {
+								// matches no-arg function call
+								context = context[matches[1]].call(context);
+							}
+							else
+								context = context[element];
+						}
+					} // end context test block
+				} // end for loop
+				
+				//if context is a function (such as an observable)  evaluated it with no arguments
+				return _.isFunction(context) ? context() : context;
+			}
+			else 
+				return null;
 		},
 		
 		bindContent: function() {
@@ -90,7 +175,7 @@ function(_, $, Metamorph, subscribable, binder) {
 		dispose: function() {
 			this.disposeChildren();
 			if(this._isBound) {
-				this._subscription.dispose();
+				_.each(this._subscriptions, function(subscription) { subscription.dispose() });
 				this._isBound = false;	
 			}
 		}

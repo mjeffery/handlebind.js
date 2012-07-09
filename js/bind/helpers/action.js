@@ -11,9 +11,9 @@ define(['lib/handlebars', 'bind/binder', 'context/Action'], function(Handlebars,
 			var action = new Action(event, context, data);
 			
 			binder.context().children.push(action);
-			binder.afterBinding(action.bind, action); //TODO does this need 'action' as a target?
+			binder.afterBinding(action.bind, action);
 			
-			return new Handlebars.SafeString('class="' + action.id() + '"');
+			return new Handlebars.SafeString('handlebind="' + action.id() + '"');
 		}
 		else {
 			// Block helper mode -- combine the action with all other class bindings in the block
