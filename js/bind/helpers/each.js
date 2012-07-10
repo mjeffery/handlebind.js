@@ -19,7 +19,7 @@ define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Han
 							});
 							
 							binder.pushContext(itemBinding);
-							ret = ret + binder.bindContent();
+							ret = ret + itemBinding.bindContent();
 							binder.popContext();
 						}
 					} 
