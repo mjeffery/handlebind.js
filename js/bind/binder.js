@@ -1,4 +1,4 @@
-define(['context/BindingContext'], function(BindingContext) {
+define(['lib/underscore', 'context/BindingContext'], function(_, BindingContext) {
 	
 	var _isBinding = false,
 		_stack = [],
@@ -38,8 +38,7 @@ define(['context/BindingContext'], function(BindingContext) {
 		
 		this.popContext = function() { return _stack.length > 0 ? _stack.pop() : null };
 		this.context = function() { return _stack.length > 0 ? _stack[_stack.length - 1] : null };
-		
-		
+
 		this.start = function(context) {
 			if(_isBinding)
 				this.error("Cannot start binding a new context, Binder is already started");

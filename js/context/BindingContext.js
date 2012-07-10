@@ -9,6 +9,8 @@ function(_, $, Metamorph, subscribable, binder) {
 	
 	function BindingContext(target, content) {
 		
+		target = this.tryParse(target);
+		
 		this['$data'] = target;
 		this._doNotBind = binder.ignoringBindings();
 		
@@ -41,6 +43,13 @@ function(_, $, Metamorph, subscribable, binder) {
 				this._isDirty = arguments[0];
 			else 
 				return this._isDirty;
+		},
+		
+		tryParse: function(expr) {
+			if(_.isString(expr) && expr.match(/^path::.*/i)) 
+				return this.get(expr.substr("path::".length));
+			else
+				return expr;
 		},
 		
 		get: function(path, context) {
