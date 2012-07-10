@@ -1,6 +1,6 @@
 define(['lib/underscore'], function(_) {
 	function Action(event, handler, data) {
-		this._id = _.uniqueId('bind-action-');
+		this._id = _.uniqueId('action');
 		
 		this._event = event || 'click'; //TODO make sure that event is a string
 		this._handler = handler; //TODO make sure that this a function
@@ -14,12 +14,12 @@ define(['lib/underscore'], function(_) {
 		id: function() {return this._id },
 		
 		bind: function() {
-			$('.' + this._id).on(this._event, this._data, this._handler);
+			$('[handlebind~="' + this._id + '"]').on(this._event, this._data, this._handler);
 			this._isAttached = true;
 		},
 		
 		dispose: function() {
-			$('.' + this._id).on(this._event, this._data, this._handler);
+			$('[handlebind~="' + this._id + '"]').on(this._event, this._data, this._handler);
 		}
 	});
 	
