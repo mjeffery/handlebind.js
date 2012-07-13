@@ -1,28 +1,25 @@
 define(
-['lib/underscore', 'lib/handlebars', 'observe/observable', 'bind/binder', 'context/BindingContext'], 
-function(_, Handlebars, observable, binder, BindingContext) {
-	Handlebars.registerHelper('value', function(context, options) {
-		
-		var unbound = !!(options.hash['unbound']) || binder.ignoringBindings();
-
-		if(!!context && _.isSubscribable(context) && !unbound) {
-			var binding = new BindingContext(context, function(value) {
-				return !!value ? Handlebars.Utils.escapeExpression(value.toString()) : "";
+['lib/underscore', 'lib/handlebars', 'context/BindingContext', 'bind/context'], 
+function(_, Handlebars, BindingContext, context) {
+	
+	var ValueContext = BindingContext.extend({
+		renderContent: function(value) {
+			return !!value ? Handlebars.Utils.escapeExpression(value.toString()) : "";
+		}
+	});
+	
+	Handlebars.registerHelper('value', function(target, options) {
+		var ret,
+			valueContext = ValueContext.create({ 
+				target: target, 
+				parent: context(),
+				bind: !(options.hash['unbound'] === true)
 			});
-			
-			binder.pushContext(binding);
-			var ret = binding.bindContent();
-			binder.popContext();
-			
-			return ret;
-		}
-		else {
-			if(!context) 
-				return "";
-			else {
-				var ret = _.isFunction(context) ? context().toString() : context.toString();
-				return Handlebars.Utils.escapeExpression(ret);
-			}
-		}
-	})
+		
+		context(valueContext);
+		ret = valueContext.render();
+		context.pop();
+		
+		return ret;
+	});
 });

@@ -3,9 +3,9 @@ define(
  'lib/jquery',
  'lib/handlebars', 
  'context/BindingContext',
- 'bind/binder',
+ 'bind/context',
  'bind/helpers/value'], 
-function(_, $, Handlebars, BindingContext, binder) {
+function(_, $, Handlebars, BindingContext, context) {
 	
 	var View = function(templateOrSelector, modelview) {
 		
@@ -26,7 +26,7 @@ function(_, $, Handlebars, BindingContext, binder) {
 			this._template = templateOrSelector;
 		}
 		
-		this._context = new BindingContext(modelview);
+		this._context = BindingContext.create({ target: modelview });
 		this._attachedToDom = false;
 	}
 	
@@ -35,10 +35,11 @@ function(_, $, Handlebars, BindingContext, binder) {
 			
 			//TODO bind/util wrap this for high level changes?  
 			
-			binder.start(this._context);
+			context(this._context);
 			$(this._template(this._context.target())).appendTo(elementOrSelector);
-			binder.end(); //TODO pass 'this' to end so it can perform the after insertion tasks
+			context.pop();
 			
+			this._context.trigger('attach');
 			this._attachedToDom = true;
 			//TODO add a removedFromDom handler here to update status
 		}

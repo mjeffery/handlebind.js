@@ -1,42 +1,50 @@
-define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Handlebars, BindingContext, binder) {
-	
+define(
+['lib/handlebars', 'context/BindingContext', 'bind/context'], 
+function(Handlebars, BindingContext, context) {
 	Handlebars.helpers['_nobind_each'] = Handlebars.helpers['each'];
-	Handlebars.registerHelper('each', function(context, options) {
+	Handlebars.registerHelper('each', function(target, options) {
 		
-		var unbound = !!(options.hash['unbound']) || binder.ignoringBindings(),
-			ret = "";
-			
-		if(context) {
-			var self = this,
-			    binding = new BindingContext(context, function(items) {
-					var fn = options.fn, inverse = options.inverse;
-					var ret = "";
+		var self = this,
+			fn = options.fn, 
+			inverse = options.inverse,
+			ItemContext = BindingContext.extend({
+				renderContent:	function(item) {
+					return new Handlebars.SafeString(fn(item));
+				}
+			}),
+			eachContext = BindingContext.extend({
+				renderContent: function(items) {
+					
+					var itemContext, ret = "";
 					
 					if(items && items.length > 0) {
 						for(var i=0, j=items.length; i<j; i++) {
-							var itemBinding = new BindingContext(items[i], function(item) {
-								return new Handlebars.SafeString(fn(item));
+							itemContext = ItemContext.create({
+								target: items[i],
+								parent: context(),
 							});
 							
-							binder.pushContext(itemBinding);
-							ret = ret + itemBinding.bindContent();
-							binder.popContext();
+							context(itemContext);
+							ret = ret + itemContext.render();
+							context.pop();
 						}
 					} 
 					else 
 			   			ret = inverse(self);
 					
 					return ret;
-				});
-			binding.doNotBind = unbound;
-				
-			binder.pushContext(binding);
-			ret = binding.bindContent();
-			binder.popContext();
-		}
-		else 
-			ret = Handlebars.helpers['_nobind_each'].call(this, context, options);
-			
+				}
+			}).create({
+				target: target,
+				parent: context(),
+				bind: !(options.hash['unbound'] === true)
+			}),
+			ret = "";
+		
+		context(eachContext);
+		ret = eachContext.render();
+		context.pop();
+		
 		return ret;
 	});
 });

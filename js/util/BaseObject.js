@@ -30,7 +30,7 @@ define(['lib/underscore', './Mixin'], function(_, Mixin) {
 			
 			if(!wasApplied) {
 				wasApplied = true;
-				Class.PrototypeMixin.applyPartial(Class.prototype);  //TODO find correct signature for applyPartial
+				Class.PrototypeMixin.apply(Class.prototype);  //TODO find correct signature for applyPartial
 			}
 			
 			return this.prototype;
@@ -43,7 +43,7 @@ define(['lib/underscore', './Mixin'], function(_, Mixin) {
 	
 	BaseObject.PrototypeMixin = Mixin.create({
 		reopen: function() {
-			Mixin._apply(this, arguments, true); //TODO find correct signature for apply
+			Mixin._apply(arguments, this); //TODO find correct signature for apply
 			return this;
 		},
 		

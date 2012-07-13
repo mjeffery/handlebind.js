@@ -1,26 +1,24 @@
-define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Handlebars, BindingContext, binder) {
-	
+define(
+['lib/handlebars', 'context/BindingContext', 'bind/context'], 
+function(Handlebars, BindingContext, context) {
 	Handlebars.helpers['_nobind_with'] = Handlebars.helpers['with'];
-	Handlebars.registerHelper('with', function(context, options) {
-		
-		var unbound = !!(options.hash['unbound']) || binder.ignoringBindings(),
-			ret = "";
-			
-		if(context) {
-			var binding = new BindingContext(context, function(value) {
-				return options.fn(value);
-			});
-			binding.doNotBind = unbound;
-				
-			binder.pushContext(binding);
-			ret = binding.bindContent();
-			binder.popContext();
+	Handlebars.registerHelper('with', function(target, options) {
 
-			return ret;
-		}
-		else 
-			ret = Handlebars.helpers['_nobind_with'].call(this, context, options);
+		var ret,
+			withContext = BindingContext.extend({
+				renderContent: function(value) {
+					return options.fn(value);
+				}
+			}).create({
+				target: target,
+				parent: context(),
+				bind: !(options.hash['unbound'] === true)
+			});
 			
+		context(withContext);
+		ret = withContext.render();
+		context.pop();
+		
 		return ret;
 	});
 });

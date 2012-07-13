@@ -1,4 +1,4 @@
-define('lib/underscore', function(_) {
+define(['lib/underscore'], function(_) {
 	
 	function override(func, superFunc) {
 		function K() {}
@@ -62,6 +62,8 @@ define('lib/underscore', function(_) {
 						if(ovalue) 
 							value = override(value, ovalue);
 					}
+					
+					base[key] = value;
 				}
 			}
 			else if(mixin.mixins) {
@@ -75,9 +77,8 @@ define('lib/underscore', function(_) {
 	Mixin._apply = applyMixins;
 	
 	Mixin.create = function() {
-		//classToString.processed = false;	
 		var M = this;
-		return initMixin(new M(), argument);
+		return initMixin(new M(), arguments);
 	}
 	
 	Mixin.prototype.reopen = function() {
@@ -115,9 +116,9 @@ define('lib/underscore', function(_) {
 	var TMP_ARRAY = [];
 	Mixin.prototype.apply = function(obj) {
 		TMP_ARRAY[0] = this;
-		var ret = applyMixins(obj, TMP_ARRAY);
+		var ret = applyMixins(TMP_ARRAY, obj);
 		TMP_ARRAY.length = 0;
-		return ret;
+		return obj;
 	};
 	
 	return Mixin;

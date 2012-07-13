@@ -1,23 +1,25 @@
 define(
-['lib/underscore', 'lib/handlebars', 'observe/observable', 'bind/binder', 'context/BindingContext'], 
+['lib/underscore', 'lib/handlebars', 'observe/observable', 'bind/context', 'context/BindingContext'], 
 function(_, Handlebars, observable, binder, BindingContext) {
-	Handlebars.registerHelper('html', function(context, options) {
-		if(!!context && _.isSubscribable(context) && !binder.ignoringBindings()) {
-			var binding = new BindingContext(context, function(value) {
-				return !!value ? new Handlebars.SafeString(value.toString()) : "";
+	
+	var HtmlContext = BindingContext.extend({
+		renderContent: function() {
+			return !!value ? new Handlebars.SafeString(value.toString()) : "";
+		}
+	});
+	
+	Handlebars.registerHelper('html', function(target, options) {
+		var ret,
+			htmlContext = HtmlContext.create({ 
+				target: target, 
+				parent: context(),
+				bind: !(options.hash['unbound'] === true)
 			});
-			
-			binder.pushContext(binding);
-			var ret = binding.bindContent();
-			binder.popContext();
-			
-			return ret;
-		}
-		else {
-			if(!context) 
-				return "";
-			else 
-				return new Handlebars.SafeString((_.isFunction(context)) ? context().toString() : context.toString());
-		}
-	})
+		
+		context(htmlContext);
+		ret = htmlContext.render();
+		context.pop();
+		
+		return ret;
+	});
 });

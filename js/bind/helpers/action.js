@@ -1,4 +1,4 @@
-define(['lib/handlebars', 'bind/binder', 'context/Action'], function(Handlebars, binder, Action) {
+define(['lib/handlebars', 'bind/context', 'context/Action'], function(Handlebars, binder, Action) {
 	Handlebars.registerHelper('action', function(context, options) {
 		var event = options.hash['event'] || 'click',
 			data = binder.context()['$data'],

@@ -1,8 +1,18 @@
 define(['lib/handlebars', 'bind/binder'], function(Handlebars, binder) {
+
 	Handlebars.registerHelper('unbound', function(options) {
-		binder.stopBinding();
-		var ret = options.fn(this);
-		binder.resumeBinding();
+		var unboundContext = RenderContext.extend({
+				render: function() { return options.fn(this); },
+			}).create({
+				target: null,
+				bind: false,
+				parent: context()
+			}),
+			ret;
+		
+		context(unboundContext);
+		ret = unboundContext.render();
+		context.pop();
 		
 		return ret;
 	});
