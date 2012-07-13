@@ -10,7 +10,7 @@ function(_, Handlebars, BindingContext, context) {
 	
 	Handlebars.registerHelper('value', function(target, options) {
 		var ret,
-			valueContext = ValueContext.create({ 
+			valueContext = new ValueContext({ 
 				target: target, 
 				parent: context(),
 				bind: !(options.hash['unbound'] === true)

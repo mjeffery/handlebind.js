@@ -5,11 +5,11 @@ function(Handlebars, BindingContext, context) {
 	Handlebars.registerHelper('with', function(target, options) {
 
 		var ret,
-			withContext = BindingContext.extend({
+			withContext = new BindingContext.extend({
 				renderContent: function(value) {
 					return options.fn(value);
 				}
-			}).create({
+			})({
 				target: target,
 				parent: context(),
 				bind: !(options.hash['unbound'] === true)

@@ -26,7 +26,7 @@ function(_, $, Handlebars, BindingContext, context) {
 			this._template = templateOrSelector;
 		}
 		
-		this._context = BindingContext.create({ target: modelview });
+		this._context = new BindingContext({ target: modelview });
 		this._attachedToDom = false;
 	}
 	

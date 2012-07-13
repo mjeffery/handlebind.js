@@ -10,7 +10,7 @@ function(_, Handlebars, observable, binder, BindingContext) {
 	
 	Handlebars.registerHelper('html', function(target, options) {
 		var ret,
-			htmlContext = HtmlContext.create({ 
+			htmlContext = new HtmlContext({ 
 				target: target, 
 				parent: context(),
 				bind: !(options.hash['unbound'] === true)

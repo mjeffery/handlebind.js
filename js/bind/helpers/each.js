@@ -12,7 +12,7 @@ function(Handlebars, BindingContext, context) {
 					return new Handlebars.SafeString(fn(item));
 				}
 			}),
-			eachContext = BindingContext.extend({
+			eachContext = new BindingContext.extend({
 				renderContent: function(items) {
 					
 					var itemContext, ret = "";
@@ -34,7 +34,7 @@ function(Handlebars, BindingContext, context) {
 					
 					return ret;
 				}
-			}).create({
+			})({
 				target: target,
 				parent: context(),
 				bind: !(options.hash['unbound'] === true)

@@ -4,7 +4,7 @@ define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Han
 	Handlebars.registerHelper('if', function(target, options) {
 		
 		var ret = "",
-			ifContext = BindingContext.extend({
+			ifContext = new BindingContext.extend({
 				renderContent: function(value) {
 					var result = "";
 					if(!value || Handlebars.Utils.isEmpty(value))
@@ -14,7 +14,7 @@ define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Han
 				    	
 				    return new Handlebars.SafeString(result);
 				}
-			}).create({
+			})({
 				target: target,
 				parent: context(),
 				bind: !(options.hash['unbound'] === true) 
