@@ -1,10 +1,10 @@
-define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Handlebars, BindingContext, binder) {
+define(['lib/handlebars', 'context/BindingContext', 'bind/context'], function(Handlebars, BindingContext, context) {
 	
 	Handlebars.helpers['_nobind_if'] = Handlebars.helpers['if'];
 	Handlebars.registerHelper('if', function(target, options) {
 		
 		var ret = "",
-			ifContext = new BindingContext.extend({
+			ifContext = BindingContext.extend({
 				renderContent: function(value) {
 					var result = "";
 					if(!value || Handlebars.Utils.isEmpty(value))
@@ -14,7 +14,7 @@ define(['lib/handlebars', 'context/BindingContext', 'bind/binder'], function(Han
 				    	
 				    return new Handlebars.SafeString(result);
 				}
-			})({
+			}).invoke({
 				target: target,
 				parent: context(),
 				bind: !(options.hash['unbound'] === true) 

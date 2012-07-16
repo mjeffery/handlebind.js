@@ -31,14 +31,14 @@ function(_, $, Metamorph, subscribable, RenderContext, context) {
 			
 			if(this._subscriptions.length > 0 && this.bind()) {
 				if(!this._metamorph) {
-					this._metamorph = new Metamorph(this.renderContext(value));	  
+					this._metamorph = new Metamorph(this.renderContent(value));	  
 	       			return new Handlebars.SafeString(this._metamorph.outerHTML());
 	       		}
 	       		else
 	       			return this._metamorph.outerHTML();
 	    	}	
 			else
-				return this.renderContext(value);	
+				return this.renderContent(value);	
 		},
 		
 		rerender: function() {

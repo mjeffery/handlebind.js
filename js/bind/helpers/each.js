@@ -34,7 +34,7 @@ function(Handlebars, BindingContext, context) {
 					
 					return ret;
 				}
-			})({
+			}).invoke({
 				target: target,
 				parent: context(),
 				bind: !(options.hash['unbound'] === true)

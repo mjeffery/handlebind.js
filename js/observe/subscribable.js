@@ -2,7 +2,7 @@ define(['lib/underscore', 'util/arrays', './Subscription'], function(_, arrays, 
 	
 	_.mixin({
 		"isSubscribable": function(instance) {
-			 return typeof instance.subscribe == "function" && typeof instance["notifySubscribers"] == "function";
+			 return !!instance && typeof instance.subscribe == "function" && typeof instance["notifySubscribers"] == "function";
 		}
 	})
 	

@@ -9,7 +9,7 @@ define(['lib/underscore', 'context/RenderContext'], function(_, RenderContext) {
 		return _TOP; 
 	}	
 	
-	_.extend(context.prototype, {	
+	_.extend(context, {	
 		pop: function() {
 			var top = context();
 			if(top)

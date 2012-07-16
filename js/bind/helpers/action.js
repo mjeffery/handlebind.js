@@ -1,17 +1,17 @@
-define(['lib/handlebars', 'bind/context', 'context/Action'], function(Handlebars, binder, Action) {
-	Handlebars.registerHelper('action', function(context, options) {
+define(['lib/handlebars', 'bind/context', 'context/Action'], function(Handlebars, context, Action) {
+	Handlebars.registerHelper('action', function(target, options) {
 		var event = options.hash['event'] || 'click',
-			data = binder.context()['$data'],
+			data = context()['$data'],
 			fn = options['fn'];
 		
 		//TODO ensure that context is a function?
 		
 		if(!fn) {
 			// Normal helper mode -- bind the action as a css class 
-			var action = new Action(event, context, data);
+			var action = new Action(event, target, data);
 			
-			binder.context().children.push(action);
-			binder.afterBinding(action.bind, action);
+			//context().children.push(action);
+			//binder.afterBinding(action.bind, action);
 			
 			return new Handlebars.SafeString('handlebind="' + action.id() + '"');
 		}

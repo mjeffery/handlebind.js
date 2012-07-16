@@ -1,106 +1,92 @@
-define(['lib/underscore', './Mixin'], function(_, Mixin) {
+define(['lib/underscore'], function(_) {
+	
+	var Class_ctor = function() {};
+	
 	function makeCtor() {
-		
-		var wasApplied = false, initMixins, init = false;
-		
 		var Class = function() {
-			if(!wasApplied) { Class.proto(); }
-			if(initMixins) {
-				this.reopen.apply(this, initMixins);
-				initMixins = null;
-				this.init.apply(this, arguments);
-			}
-			else {
-				if(init === false) { init = this.init; } // cache for later instantiations ???
-				init.apply(this, arguments);
-			}
-		};
-		
-		Class.willReopen = function() {
-			if(wasApplied) {
-				Class.PrototypeMixin = Mixin.create(Class.PrototypeMixin);
-			}
-			wasApplied = false;
-		};
-		Class._initMixins = function(args) { initMixins = args; };
-		
-		Class.proto = function() {
-			var superclass = Class.superclass;
-			if(superclass) { superclass.proto(); }
-			
-			if(!wasApplied) {
-				wasApplied = true;
-				Class.PrototypeMixin.apply(Class.prototype);  //TODO find correct signature for applyPartial
-			}
-			
-			return this.prototype;
+			this.init.apply(this, arguments);
 		}
+		
+		_.extend(Class, {
+			__isMethod: false,
+			extend: extend,
+			invoke: function() {
+				Class_ctor.prototype = this.prototype;
+				var instance = new Class_ctor();
+				this.apply(instance, arguments);
+				return instance;
+			}
+		})
+		
+		Class.prototype.init = function() {};
 		
 		return Class;
 	}
 	
-	var BaseObject = makeCtor();
+	function isMethod(obj) {
+	  	return 'function' === typeof obj &&
+	           obj.__isMethod !== false &&
+	           obj !== Boolean && obj !== Object && obj !== Number && obj !== Array && obj !== Date && obj !== String;
+	}
 	
-	BaseObject.PrototypeMixin = Mixin.create({
-		reopen: function() {
-			Mixin._apply(arguments, this); //TODO find correct signature for apply
-			return this;
-		},
-		
-		isInstance: true,
-		
-		init: function() {}
-		
-		//toString: function() { return '<' + this.constructor.toString() + ':' + guidFor(this) + '>'; }
-	});
+	function overrideFunction(func, superFunc) {
+		function K() {}
 	
-	BaseObject.__super__ = null;
+	  	var newFunc = function() {
+	  		var ret, sup = this._super;
+	    	this._super = superFunc || K;
+	    	ret = func.apply(this, arguments);
+	    	this._super = sup;
+	    	return ret;
+	  	};
 	
-	var ClassMixin = Mixin.create({
+	 	newFunc.base = func;
+	  	return newFunc;
+	}
+	
+	function applyMixin(base, mixin) {
+		var key, value, ovalue;
 		
-		isClass: true,
-		isMethod: false,
-		
-		extend: function() {
-			var Class = makeCtor(), proto;
-			Class.ClassMixin = Mixin.create(this.ClassMixin);
-			Class.PrototypeMixin = Mixin.create(this.PrototypeMixin);
+		for(key in mixin) {
+			if(!mixin.hasOwnProperty(key)) { continue; }
+			value = mixin[key];
 			
-			Class.ClassMixin.ownerConstructor = Class;
-    		Class.PrototypeMixin.ownerConstructor = Class;
-    		
-    		Class.superclass = this;
-		    Class.__super__  = this.prototype;
-		
-		    proto = Class.prototype = Object.create(this.prototype); //TODO shim for Object.create?
-		    proto.constructor = Class;
-		
-		    Class.ClassMixin.apply(Class);
-		    return Class;
-		},
-		
-		create: function() {
-			var C = this;
-			if(arguments.length > 0) { this._initMixins(arguments); }
-			return new C();
-		},
-		
-		reopen: function() {
-			var PrototypeMixin = this.PrototypeMixin;
-			PrototypeMixin.reopen.apply(PrototypeMixin, arguments);
-			return this;
-		},
-		
-		reopenClass: function() {
-			var ClassMixin = this.ClassMixin;
-			ClassMixin.reopen.apply(this, arguments);
-			Mixin._apply(this, arguments);
-			return this;
+			if(isMethod(value)) {
+				ovalue = base[key];
+				if(!_.isFunction(ovalue)) { ovalue = null; }
+				if(ovalue) 
+					value = overrideFunction(value, ovalue);
+			}
+			
+			base[key] = value;
 		}
-	});
+	}
 	
-	BaseObject.ClassMixin = ClassMixin;
-	ClassMixin.apply(BaseObject);
+	var inherits = function(parent, protoProps, staticProps) {
+		var child = makeCtor(), proto;
+	
+		_.extend(child, parent);
+		
+		proto = _.extend(child.prototype, parent.prototype);
+		proto.constructor = child;
+	
+		if (protoProps) applyMixin(proto, protoProps);
+		if (staticProps) applyMixin(child, staticProps);
+		
+		child.superclass = parent;
+		child.__super__ = parent.prototype;
+		
+		return child;
+	}
+	
+	var extend = function(protoProps, staticProps) {
+		var child = inherits(this, protoProps, staticProps);
+		child.extend = this.extend;
+		return child;
+	}
+
+	var BaseObject = makeCtor();
+	//BaseObject.extend = extend;
 	
 	return BaseObject;
 });

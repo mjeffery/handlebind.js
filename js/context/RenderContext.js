@@ -8,7 +8,7 @@ function(_, $, BaseObject, Metamorph) {
 		matchIndexer = /(.*?)\[([0-9]){1,}\]/i; // results[1] is property, results[2] is the index
 	
 	
-	return BaseObject.extend({
+	var RenderContext = BaseObject.extend({
 		
 		_handlers: {},
 		_isDirty: false,
@@ -55,8 +55,8 @@ function(_, $, BaseObject, Metamorph) {
 		target: function() {
 			var value = this._target;
 			
-			if(_.isString(target) && target.match(/^path::.*/i)) 
-				value = this._get(target.substr("path::".length));
+			if(_.isString(value) && value.match(/^path::.*/i)) 
+				value = this._get(value.substr("path::".length));
 			
 			return value;
 		 },
@@ -97,7 +97,7 @@ function(_, $, BaseObject, Metamorph) {
 		},
 		
 		trigger: function(event, data) {
-			var handlers = this._handers[event];
+			var handlers = this._handlers[event];
 			if(_.isArray(handlers)) {
 				_.each(handlers, function(handler) {
 					handler.callback.call(handler.context, data);
@@ -223,4 +223,5 @@ function(_, $, BaseObject, Metamorph) {
 		}
 	});
 	
+	return RenderContext;
 });
