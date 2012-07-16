@@ -1,7 +1,7 @@
 define(
 ['lib/underscore', 'lib/jquery', './RenderContext'], 
 function(_, $, RenderContext) {
-	return RenderContext.extend({
+	var ActionContext = RenderContext.extend({
 		
 		_attached: false,
 		
@@ -10,16 +10,22 @@ function(_, $, RenderContext) {
 			
 			_.defaults(options, {
 				event: 'click',
-				handler: function() {},
 				data: undefined
 			});
 			
 			this._id = _.uniqueId('action');
 			this._event = options.event;
-			this._handler = options.handler;
 			this._data = options.data;
 			
-			this.on('attach', function() { this.rerender() });
+			var self = this;
+			this._handler = function() {
+				var value = self.target();
+				if(_.isFunction(value)) 
+					value.apply(this, arguments);
+				// TODO log 'not a function' error to console?
+			}
+			
+			this.on('attach', function() { this.rerender() }, this);
 		},
 		
 		render: function() {
@@ -35,4 +41,6 @@ function(_, $, RenderContext) {
 			this._super();
 		}
 	});
+	
+	return ActionContext;
 });

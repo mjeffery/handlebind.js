@@ -62,8 +62,9 @@ function(_, $, BaseObject, Metamorph) {
 		 },
 		
 		bind: function() {
-			if(arguments > 0) {
-				this._bind = this['$parentContext'].bind && !!arguments[0];
+			if(arguments.length > 0) {
+				var parentBinding = !this.$parentContext ? true : this.$parentContext.bind();
+				this._bind = parentBinding && !!arguments[0];
 			}
 			else
 				return this._bind;

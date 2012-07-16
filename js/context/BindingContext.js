@@ -12,7 +12,7 @@ function(_, $, Metamorph, subscribable, RenderContext, context) {
 				this._subscriptions.push(
 					this._target.subscribe(function() {
 						this.isDirty(true);
-						this['$root'].clean(); //TODO this assumes that clean on the 'root' context is throttled or defers
+						this['$rootContext'].clean(); //TODO this assumes that clean on the 'root' context is throttled or defers
 					}, this)
 				);
 			}
@@ -49,7 +49,7 @@ function(_, $, Metamorph, subscribable, RenderContext, context) {
 				
 				context(this);
 				this.disposeChildren();	
-				this._metamorph.html(Handlebars.Utils.escapeExpression(this.renderContext(value)));
+				this._metamorph.html(Handlebars.Utils.escapeExpression(this.renderContent(value)));
 				context(oldContext);
 			}
 		},

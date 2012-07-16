@@ -67,7 +67,7 @@ define(['lib/underscore'], function(_) {
 	
 		_.extend(child, parent);
 		
-		proto = _.extend(child.prototype, parent.prototype);
+		proto = child.prototype = Object.create(parent.prototype);
 		proto.constructor = child;
 	
 		if (protoProps) applyMixin(proto, protoProps);
