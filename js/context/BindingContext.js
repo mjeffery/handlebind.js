@@ -18,6 +18,10 @@ function(_, $, Metamorph, subscribable, RenderContext, context) {
 			}
 		},
 		
+		bound: function() {
+			return this._subscriptions.length > 0 && this.bind();
+		},
+		
 		renderContent: function(value) {
 			if(value === null || value === undefined)
 				return "";
@@ -29,7 +33,7 @@ function(_, $, Metamorph, subscribable, RenderContext, context) {
 			var target = this.target(),
 			    value = _.isFunction(target) ? target() : target; 
 			
-			if(this._subscriptions.length > 0 && this.bind()) {
+			if(this.bound()) {
 				if(!this._metamorph) {
 					this._metamorph = new Metamorph(this.renderContent(value));	  
 	       			return new Handlebars.SafeString(this._metamorph.outerHTML());
