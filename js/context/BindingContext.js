@@ -1,12 +1,12 @@
 define(['lib/underscore', 'lib/jquery', 'util/metamorph', 'observe/subscribable', './RenderContext', 'bind/context'], 
 function(_, $, Metamorph, subscribable, RenderContext, context) {
 	return RenderContext.extend({
-		
-		_subscriptions: [],
-		_metamorph: undefined,
-		
+
 		init: function(options) {
 			this._super(options);
+
+            this._subscriptions = [];
+            this._metamorph =  undefined;
 			
 			if(_.isSubscribable(this._target)) {
 				this._subscriptions.push(
@@ -54,6 +54,8 @@ function(_, $, Metamorph, subscribable, RenderContext, context) {
 				context(this);
 				this.disposeChildren();	
 				this._metamorph.html(Handlebars.Utils.escapeExpression(this.renderContent(value)));
+
+                this.trigger("attach");
 				context(oldContext);
 			}
 		},
