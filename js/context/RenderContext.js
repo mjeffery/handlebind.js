@@ -10,18 +10,12 @@ function(_, $, BaseObject, Metamorph) {
 	
 	var RenderContext = BaseObject.extend({
 		
-		_handlers: {},
-		_isDirty: false,
-		_bind: undefined,
-		
-		_target: null,
-		
 		init: function(options) {
 			
 			_.defaults(options, {
 				target: null,
 				parent: null,
-				bind: true,
+				bind: true
 			});
 			
 			this._target = options.target;
@@ -48,6 +42,8 @@ function(_, $, BaseObject, Metamorph) {
 			}
 			
 			this.children = [];
+            this._handlers = {};
+            this._isDirty= false;
 			
 			this.bind(options.bind);
 		},

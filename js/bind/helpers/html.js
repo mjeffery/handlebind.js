@@ -1,9 +1,9 @@
 define(
 ['lib/underscore', 'lib/handlebars', 'observe/observable', 'bind/context', 'context/BindingContext'], 
-function(_, Handlebars, observable, binder, BindingContext) {
+function(_, Handlebars, observable, context, BindingContext) {
 	
 	var HtmlContext = BindingContext.extend({
-		renderContent: function() {
+		renderContent: function(value) {
 			return !!value ? new Handlebars.SafeString(value.toString()) : "";
 		}
 	});

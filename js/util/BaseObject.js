@@ -5,7 +5,7 @@ define(['lib/underscore'], function(_) {
 	function makeCtor() {
 		var Class = function() {
 			this.init.apply(this, arguments);
-		}
+		};
 		
 		_.extend(Class, {
 			__isMethod: false,
@@ -16,7 +16,7 @@ define(['lib/underscore'], function(_) {
 				this.apply(instance, arguments);
 				return instance;
 			}
-		})
+		});
 		
 		Class.prototype.init = function() {};
 		
@@ -77,16 +77,14 @@ define(['lib/underscore'], function(_) {
 		child.__super__ = parent.prototype;
 		
 		return child;
-	}
+	};
 	
 	var extend = function(protoProps, staticProps) {
 		var child = inherits(this, protoProps, staticProps);
 		child.extend = this.extend;
 		return child;
-	}
+	};
 
 	var BaseObject = makeCtor();
-	//BaseObject.extend = extend;
-	
-	return BaseObject;
+	return makeCtor();
 });
