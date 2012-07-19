@@ -1,75 +1,70 @@
-define(['lib/underscore', 'lib/jquery', 'observe/subscribable', 'context/BindingContext'], function(_, $, subscribable, BindingContext) {
-
-	var nullSafe = {
-		toString: function(value) {
-			if(value !== undefined && value !== null)
-				return value.toString();
-			return "";
-		}
-	};
+define(
+['lib/underscore', 'lib/jquery', 'observe/subscribable', './RenderContext', './AttributeContext'], 
+function(_, $, subscribable, RenderContext, AttributeContext) {
 	
-	var AttributesContext = BindingContext.extend({
-	
-		_attribute: undefined,
-		_id: undefined,
+	return RenderContext.extend({
 		
 		init: function(options) {
 			this._super(options);
 			
-			_.defaults(options, { attr: "unknown"});
-			this._attribute = options.attr;
+			_.defaults(options, {
+				bind_name: 'attr-bind',
+				bind_id: _.uniqueId('hb')
+			});
 			
-			if(this.bind())
-				this._id = _.uniqueId('attr');
+			this._bind_name = options.bind_name;
+			this._bind_id = options.bind_id;
 		},
 		
-		foo: function(attributes) {
-			if(attributes === null || attributes === undefined || attrbiutes)
-			if(_.isString(attributes)) {
-				return {
-					html: this._attribute + '="' + attributes + '"',
-					attrs: [this._attribute]
-				}
-			}
-			else {
-				var html = "", key, value, keys = [];
-				
-				for(key in attributes) {
-					if(!attributes.hasOwnProperty(key)) continue;
-					
-					value = attributes[key];
-					
-					if(_.isArray(value)) 
-						value = _.reject(value, function(item) { return item === undefined || item === null }).join(' ');
-					else
-						value = nullSafe.toString(attributes[key]);
-						
-					html += key + '="' + value + '" ';
-					keys.push(key);
-				}
-				
-				return { html: html, attrs: keys }
-			}
-		},
-	
 		render: function() {
-			var target = this.target(),
-				value = _.isFunction(target) ? target() : target,
-				ret = "";
-				
+			var ret="", i, len, child;
 			
+			this._ensureChildren();
+			ret += this._bind_name + '="'+ this._bind_id + '" ';
 			
-			if(this._subscriptions.length > 0 && this.bind()) 
-				ret += ' handlebind="' + this._id + '"';
-			
-			return ret;
+			for(i = 0, len = this.children.length; i < len; i++) 
+				ret += children[i].render() + ' ';
 		},
 		
 		rerender: function() {
-			var element = $('[handlebind~="' + this._id + '"]');
-			element
+			var element = $('['+ this._bind_name + '="' + this._bind_id +'"]'),
+				i, len;
+				
+			for(i = 0, len = this.children.length; i < len; i++) 
+				element.removeAttr(this.children[i]._name);
+				
+			this._ensureChildren();
+			
+			for(i = 0, len = this.children.length; i < len; i++) {
+				child = this.children[i];
+				element.attr(child._name, child._getAttributeValue());
+			}
+		},
+			
+		_ensureChildren: function() {	//TODO should this return the children array instead?
+			this.disposeChildren();
+			
+			var target = this.target(),
+				attributes = _.isFunction(target) ? target() : target,
+				key, attribute;	
+			
+			if(!_.isObject(attributes)) return;	//TODO warn somehow?
+			
+			for(key in attributes) {
+				if(!attributes.hasOwnProperty(key)) continue;
+				
+				attribute = attributes[key];
+				
+				new AttributeContext({
+					name: key,
+					target: attribute,
+					parent: this,
+					bind_name: this._bind_name,
+					bind_id: this._bind_id
+				});
+			}
 		}
 	});
-
+	
 	return AttributesContext;
 });

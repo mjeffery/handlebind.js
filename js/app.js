@@ -20,6 +20,7 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 		var ViewModel = function() {
 				var self = this;
 			
+				this.cssClass =  hb.observable("blue");
 				this.firstName = hb.observable("tim");
 				this.lastName =  hb.observable("schaffer");
 				this.fullName =  hb.computed(function() {
@@ -43,6 +44,11 @@ require(['lib/jquery', 'bind/View', 'hb'], function($, View, hb) {
 					self.showNested(!self.showNested());
 					console.log('show:' + self.showNested());
 				};
+				
+				this.toggleColors = function() {
+					var color = self.cssClass();
+					self.cssClass(color === 'red' ? 'blue' : 'red');
+				}
 				
 				this.nested = {
 					firstName: hb.observable('lola'),

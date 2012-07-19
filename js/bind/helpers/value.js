@@ -1,8 +1,8 @@
 define(
-['lib/underscore', 'lib/handlebars', 'context/BindingContext', 'bind/context'], 
-function(_, Handlebars, BindingContext, context) {
+['lib/underscore', 'lib/handlebars', 'context/MetamorphContext', 'bind/context'], 
+function(_, Handlebars, MetamorphContext, context) {
 	
-	var ValueContext = BindingContext.extend({
+	var ValueContext = MetamorphContext.extend({
 		renderContent: function(value) {
 			return !!value ? Handlebars.Utils.escapeExpression(value.toString()) : "";
 		}

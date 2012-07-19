@@ -1,6 +1,6 @@
 define(
-['lib/underscore', 'lib/handlebars', 'context/BindingContext', 'bind/binder', 'observe/subscribable'], 
-function(_, Handlebars, BindingContext, binder) {
+['lib/underscore', 'lib/handlebars'], 
+function(_, Handlebars) {
 		Handlebars.registerHelper('input', function(context, options) {
 			var fn = options['fn'];  
 			if(!fn) {

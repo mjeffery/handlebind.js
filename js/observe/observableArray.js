@@ -1,4 +1,11 @@
 define(['lib/underscore', './observable', './dependencyDetection'], function(_, observable, dependencyDetection) {
+	
+	_.mixin({
+		"isObservableArray": function(instance) {
+			 return _.isSubscribable(instance) && instance.__observableArray === true;
+		}
+	})
+	
 	return function(initialValue) {
 		if(argument.length == 0) {
 			//No arg constructor initializes to empty array
@@ -78,6 +85,8 @@ define(['lib/underscore', './observable', './dependencyDetection'], function(_, 
 		}
 		
 		//TODO finish copying over other observableArray code from knockout.js
+		
+		result.__observableArray = true;
 		
 		return result;
 	}

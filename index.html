@@ -2,10 +2,14 @@
 <html>
 	<head>
 			<script data-main='js/app.js' src='js/require.js' type='text/javascript'></script>
+			<style type="text/css">
+				.red{ color:red }
+				.blue{ color:blue}
+			</style>
 	</head>
 	<body>
 		<script type="text/x-handlebars" id="test-template">
-			<label>First Name:</label>&nbsp;{{{value firstName}}}</br>
+			<label {{{class cssClass}}}>First Name:</label>&nbsp;{{{value firstName}}}</br>
 			<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
 			<label>Name:</label>&nbsp;{{{value fullName unbound=true}}}</br>
 			{{#if showNested}}
@@ -18,7 +22,8 @@
 			{{/if}}
             <a href="javascript:void(0)" {{{action toggleNames}}}>Toggle the Names!</a>
 			</br>
-			<a href="javascript:void(0)" {{{action toggleNested}}}>Toggle Nested</a>
+			<a href="javascript:void(0)" {{{action toggleNested}}}>Toggle Nested</a></br>
+			<a href="javascript:void(0)" {{{action toggleColors}}}>Toggle Colors</a></br>
 		</script>
 		<div id='app-container'></div></br>
 	</body>

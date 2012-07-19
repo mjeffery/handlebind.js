@@ -2,10 +2,18 @@ define(
 ['lib/underscore', 
  'lib/jquery',
  'lib/handlebars', 
- 'context/BindingContext',
+ 'context/TemplateContext',
  'bind/context',
  'bind/helpers/value'], 
-function(_, $, Handlebars, BindingContext, context) {
+function(_, $, Handlebars, TemplateContext, context) {
+	
+	var ViewContext = TemplateContext.extend({
+		init: function(options) {
+			this._super(options);
+		},
+		
+		bind: function() { return true; }
+	});
 	
 	var View = function(templateOrSelector, modelview) {
 		
@@ -26,7 +34,7 @@ function(_, $, Handlebars, BindingContext, context) {
 			this._template = templateOrSelector;
 		}
 		
-		this._context = new BindingContext({ target: modelview });
+		this._context = new TemplateContext({ target: modelview });
 		this._attachedToDom = false;
 	}
 	

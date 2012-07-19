@@ -1,11 +1,11 @@
 define(
-['lib/handlebars', 'context/BindingContext', 'bind/context'], 
-function(Handlebars, BindingContext, context) {
+['lib/handlebars', 'context/MetamorphContext', 'bind/context'], 
+function(Handlebars, MetamorphContext, context) {
 	Handlebars.helpers['_nobind_with'] = Handlebars.helpers['with'];
 	Handlebars.registerHelper('with', function(target, options) {
 
 		var ret,
-			withContext = BindingContext.extend({
+			withContext = MetamorphContext.extend({
 				renderContent: function(value) {
 					if(value)
 						return options.fn(value);

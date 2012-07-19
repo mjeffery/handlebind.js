@@ -17,8 +17,6 @@ define(['lib/underscore', 'lib/jquery', 'util/nullSafe', './BindingContext'], fu
 				update: 'change'	
 			});
 			
-			
-			
 			if(!_.include(VALID_TYPES, options.type)) 
 				throw new Error('type="' + options.type + '" is not supported by {{input}}');
 			if(!_.include(VALID_UPDATES, options.update))
@@ -27,15 +25,6 @@ define(['lib/underscore', 'lib/jquery', 'util/nullSafe', './BindingContext'], fu
 			this._id = _.uniqueId('input');
 			this._type = options.type;
 			this._updatePolicy = options.update;	
-			
-			if(this.bound()) {
-				this.on('attach', function() {
-					var element = $('[handlebind~="' + this._id + '"]');
-					
-					if()
-					
-				}, this);
-			}
 		},
 		
 		render: function() {

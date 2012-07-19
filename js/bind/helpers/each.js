@@ -1,18 +1,18 @@
 define(
-['lib/handlebars', 'context/BindingContext', 'bind/context'], 
-function(Handlebars, BindingContext, context) {
+['lib/handlebars', 'context/MetamorphContext', 'bind/context'], 
+function(Handlebars, MetamorphContext, context) {
 	Handlebars.helpers['_nobind_each'] = Handlebars.helpers['each'];
 	Handlebars.registerHelper('each', function(target, options) {
 		
 		var self = this,
 			fn = options.fn, 
 			inverse = options.inverse,
-			ItemContext = BindingContext.extend({
+			ItemContext = MetamorphContext.extend({
 				renderContent:	function(item) {
 					return new Handlebars.SafeString(fn(item));
 				}
 			}),
-			eachContext = new BindingContext.extend({
+			eachContext = new MetamorphContext.extend({
 				renderContent: function(items) {
 					
 					var itemContext, ret = "";
