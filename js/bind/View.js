@@ -47,7 +47,7 @@ function(_, $, Handlebars, TemplateContext, context) {
 			$(this._template(this._context.target())).appendTo(elementOrSelector);
 			context.pop();
 			
-			this._context.trigger('attach');
+			//this._context.trigger('attach');
 			this._attachedToDom = true;
 			//TODO add a removedFromDom handler here to update status
 		}

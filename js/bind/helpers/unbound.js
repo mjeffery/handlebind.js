@@ -1,4 +1,4 @@
-define(['lib/handlebars', 'context/AbstractRenderContext', 'bind/context'], function(Handlebars, RenderContext, context) {
+define(['lib/handlebars', 'context/RenderContext', 'bind/context'], function(Handlebars, RenderContext, context) {
 
 	Handlebars.registerHelper('unbound', function(options) {
 		var unboundContext = RenderContext.extend({

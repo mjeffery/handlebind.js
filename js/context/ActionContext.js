@@ -23,7 +23,7 @@ function(_, $, RenderContext) {
 				// TODO log 'not a function' error to console?
 			};
 			
-			this.on('attach', function() { this.rerender() }, this);
+			//this.on('attach', function() { this.rerender() }, this);
 		},
 		
 		render: function() {
