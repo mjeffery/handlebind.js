@@ -38,13 +38,13 @@ function(_, $, Handlebars, BaseObject, TemplateContext, context) {
 		},
 		
 		_getEventBindings: function(element) {
-			var attrs = ['event-id'], //TODO externalize?
+			var attrs = ['event-bind'], //TODO externalize?
 				ids = [], id,
 				i, len = attrs.length;
 			
 			for(i = 0; i < len; i++) {
 				id = element.attr(attrs[i]);
-				if(!_.isString(id))
+				if(_.isString(id))
 					ids.push(id);
 			}
 			
@@ -68,13 +68,13 @@ function(_, $, Handlebars, BaseObject, TemplateContext, context) {
 					_eventHandler: function(event) {
 						var callbacksById, element, ids, i, len, callback, ret;
 						
-						callbacksById = this._events[event.type];
+						callbacksById = rootContext._events[event.type];
 						if(callbacksById === undefined)
 							return;
 						
-						element = event.target;
-						while(!element.is(rootElement)) { //TODO 'root' refers to nothing-- should be the view element
-							ids = this._getEventBinding();
+						element = $(event.target);
+						while(!element.is(rootElement)) {
+							ids = rootContext._getEventBindings(element);
 							for(i = 0, len = ids.length; i < len; i++) {
 								callback = callbacksById[ids[i]];
 								ret = false;
@@ -96,11 +96,13 @@ function(_, $, Handlebars, BaseObject, TemplateContext, context) {
 				_updateEvents: function() {
 					var oldEvents = this._handledEvents,
 						newEvents = _.keys(this._events),
-						toRemove = _.difference(newEvents, oldEvents),
-						toAdd = _.difference(oldEvents, newEvents);
+						toAdd = _.difference(newEvents, oldEvents),
+						toRemove = _.difference(oldEvents, newEvents);
 					
-					rootElement.off(toRemove.join(' '));
-					rootElement.on(toAdd.join(' '), this._eventHandler);
+					if(toRemove.length > 0)
+						rootElement.off(toRemove.join(' '));
+					if(toAdd.length > 0)
+						rootElement.on(toAdd.join(' '), this._eventHandler);
 					
 					this._handledEvents = newEvents;
 				}
