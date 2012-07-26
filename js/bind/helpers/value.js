@@ -1,12 +1,6 @@
 define(
-['lib/underscore', 'lib/handlebars', 'context/MetamorphContext', 'bind/context'], 
-function(_, Handlebars, MetamorphContext, context) {
-	
-	var ValueContext = MetamorphContext.extend({
-		renderContent: function(value) {
-			return !!value ? Handlebars.Utils.escapeExpression(value.toString()) : "";
-		}
-	});
+['lib/underscore', 'lib/handlebars', 'context/ValueContext', 'bind/context'], 
+function(_, Handlebars, ValueContext, context) {
 	
 	Handlebars.registerHelper('value', function(target, options) {
 		var ret,
@@ -20,6 +14,6 @@ function(_, Handlebars, MetamorphContext, context) {
 		ret = valueContext.render();
 		context.pop();
 		
-		return ret;
+		return new Handlebars.SafeString(ret);
 	});
 });

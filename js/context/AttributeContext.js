@@ -24,8 +24,6 @@ function(_, $, BindingContext, RenderContext) {
 			this._bind_name = options.bind_name;
 			this._bind_id = options.bind_id;
 			this._name = options.name;
-			
-			this._subscribeToItems();
 		},
 		
 		render: function() {
@@ -35,9 +33,6 @@ function(_, $, BindingContext, RenderContext) {
 		
 		rerender: function() {
 			if(this.bound()) {
-				this.disposeChildren();
-				this._subscribeToItems();
-				
 				var value = this._getAttributeValue();
 				$('['+ this._bind_name + '="' + this._bind_id + '"]').attr(this._name, value);				
 			}
@@ -45,6 +40,7 @@ function(_, $, BindingContext, RenderContext) {
 		
 		_getAttributeValue: function() {
 			this.disposeChildren();
+			this._subscribeToItems();
 			
 			var target = this.target(),
 				value = _.isFunction(target) ? target() : target;

@@ -14,7 +14,7 @@
 			<label>Name:</label>&nbsp;{{text fullName unbound=true}}</br>
 			{{#if showNested}}
 				{{#with nested}}
-					<label>First Name:</label>&nbsp;{{text firstName}}</br>
+					<label>First Name:</label>&nbsp;<input type="text" {{value firstName}} /></br>
 					<label>Last Name:</label>&nbsp;{{text lastName}}</br>
 					<label>Name:</label>&nbsp;{{html fullName}}</br>
 				{{/with}}

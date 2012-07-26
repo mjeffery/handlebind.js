@@ -38,7 +38,7 @@ function(_, $, Handlebars, BaseObject, TemplateContext, context) {
 		},
 		
 		_getEventBindings: function(element) {
-			var attrs = ['event-bind'], //TODO externalize?
+			var attrs = ['event-bind', 'value-bind'], //TODO externalize?
 				ids = [], id,
 				i, len = attrs.length;
 			
