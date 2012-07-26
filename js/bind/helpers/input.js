@@ -1,13 +1,7 @@
 define(
-['lib/underscore', 'lib/handlebars'], 
-function(_, Handlebars) {
+['lib/underscore', 'lib/handlebars', './EventContext'], 
+function(_, Handlebars, EventContext) {
 		Handlebars.registerHelper('input', function(context, options) {
-			var fn = options['fn'];  
-			if(!fn) {
-				// 	
-			}
-			else {
-				
-			}
+			
 		});
 });

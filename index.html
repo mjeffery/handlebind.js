@@ -9,14 +9,14 @@
 	</head>
 	<body>
 		<script type="text/x-handlebars" id="test-template">
-			<label {{{class cssClass}}}>First Name:</label>&nbsp;{{{value firstName}}}</br>
-			<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
-			<label>Name:</label>&nbsp;{{{value fullName unbound=true}}}</br>
+			<label {{class cssClass}}>First Name:</label>&nbsp;{{text firstName}}</br>
+			<label>Last Name:</label>&nbsp;{{text lastName}}</br>
+			<label>Name:</label>&nbsp;{{text fullName unbound=true}}</br>
 			{{#if showNested}}
 				{{#with nested}}
-					<label>First Name:</label>&nbsp;{{{value firstName}}}</br>
-					<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
-					<label>Name:</label>&nbsp;{{{html fullName}}}</br>
+					<label>First Name:</label>&nbsp;{{text firstName}}</br>
+					<label>Last Name:</label>&nbsp;{{text lastName}}</br>
+					<label>Name:</label>&nbsp;{{html fullName}}</br>
 				{{/with}}
             <a href="javascript:void(0)" {{{events click=toggleNames}}}>Toggle the Names!</a>
 			{{/if}}

@@ -15,7 +15,7 @@ define(['lib/underscore', 'lib/handlebars', 'bind/context', 'context/AttributeCo
 				ret += this._bind_name + '="' + this._bind_id + '" ';
 			ret += this._super();
 			
-			return ret;
+			return new Handlebars.SafeString(ret);
 		}
 	});
 	
