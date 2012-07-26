@@ -2,7 +2,7 @@ define(['lib/underscore', 'context/RenderContext'], function(_, RenderContext) {
 
 	var _TOP = null;
 	function context() {
-		if(arguments > 0) {
+		if(arguments.length > 0) {
 			//TODO verify that arguments[0] is an instance of RenderContext
 			_TOP = arguments[0];	
 		}

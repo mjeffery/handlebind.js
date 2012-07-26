@@ -5,7 +5,11 @@ function(_, Handlebars, getTemplate, MetamorphContext) {
 		
 		init: function(options) {
 			this._super(options);
-			this._context_target = options.context;
+			
+			_.defaults(options, { template: this._target });
+			
+			this._template = options.template;
+			this._context = options.context;
 		},
 		
 		target: function() {
@@ -15,8 +19,8 @@ function(_, Handlebars, getTemplate, MetamorphContext) {
 			oldSubs.splice(0, oldSubs.length);
 			
 			value = {
-				template: this._bindTarget(this._target, newSubs),
-				context: this._bindTarget(this._context_target, newSubs)
+				template: this._bindTarget(this._template, newSubs),
+				context: this._bindTarget(this._context, newSubs)
 			}
 			
 			oldSubs.concat(newSubs);
@@ -24,14 +28,14 @@ function(_, Handlebars, getTemplate, MetamorphContext) {
 			return value;
 		},
 		
-		renderContent: function(templateDesc) {
-			var template = getTemplate(templateDesc.name),
-			    context = templateDesc.context;
+		renderContent: function(desc) {
+			var template = getTemplate(desc.template),
+			    context = desc.context;
 			   
 			if(_.isFunction(template)) 
 				return template(context);
 			else
-				return 'Unknown template "' + templateDesc.name + '"';
+				return 'Unknown template "' + desc.template + '"';
 		}
 	});
 });

@@ -2,59 +2,122 @@ define(
 ['lib/underscore', 
  'lib/jquery',
  'lib/handlebars', 
+ 'util/BaseObject',
  'context/TemplateContext',
- 'bind/context',
- 'bind/helpers/value'], 
-function(_, $, Handlebars, TemplateContext, context) {
+ 'bind/context'], 
+function(_, $, Handlebars, BaseObject, TemplateContext, context) {
 	
 	var ViewContext = TemplateContext.extend({
 		init: function(options) {
+			
 			this._super(options);
+			
+			this._events = {};
+			this._handledEvents = [];
+			
+			this._updateEvents = _.throttle(this._updateEvents, 0);
+			this.clean = _.throttle(this.clean, 0);
+		},
+
+		registerEvent: function(id, event, callback) {
+			var callbacksById = this._events[event];
+			if(callbacksById === undefined) 
+				this._events[event] = callbacksById = {};
+			
+			callbacksById[id] = callback;
+			
+			this._updateEvents();
 		},
 		
-		bind: function() { return true; }
+		disposeEvent: function(id, event) {
+			var callbacksById = this._events[event];
+			if(callbacksById !== undefined && callbacksById.hasOwnProperty(id)) 
+				delete callbacksById[id];
+				
+			this._updateEvents();
+		},
+		
+		_getEventBindings: function(element) {
+			var attrs = ['event-id'], //TODO externalize?
+				ids = [], id,
+				i, len = attrs.length;
+			
+			for(i = 0; i < len; i++) {
+				id = element.attr(attrs[i]);
+				if(!_.isString(id))
+					ids.push(id);
+			}
+			
+			return ids;
+		}
+		
 	});
 	
-	var View = function(templateOrSelector, modelview) {
+	var View = BaseObject.extend({
 		
-		//ensure that the template is compiled
-		if(!_.isFunction(templateOrSelector)) {
-			if(_.isString(templateOrSelector)) {
-				//TODO check a local cache of templates
-				var source = $('script#' + templateOrSelector + '[type="text/x-handlebars"]').html() || templateOrSelector;
-				this._template = Handlebars.compile(source);
-				//TODO add template to the cache
-			}
-			else {
-				//TODO report error
-				this._template = Handlebars.compile("<b>Invalid Template!</b>"); 
-			} 
-		}
-		else {
-			this._template = templateOrSelector;
-		}
+		init: function(template, modelview) {
+			this._template = template;
+			this._modelview = modelview;
+		},
 		
-		this._context = new TemplateContext({ target: modelview });
-		this._attachedToDom = false;
-	}
-	
-	View.prototype.appendTo = function(elementOrSelector) {
-		if(!this._attachedToDom) {
+		appendTo: function(elementOrSelector) {
 			
-			//TODO bind/util wrap this for high level changes?  
-			
-			context(this._context);
-			$(this._template(this._context.target())).appendTo(elementOrSelector);
+			var rootElement = $(elementOrSelector),
+				rootContext = ViewContext.extend({
+				
+					_eventHandler: function(event) {
+						var callbacksById, element, ids, i, len, callback, ret;
+						
+						callbacksById = this._events[event.type];
+						if(callbacksById === undefined)
+							return;
+						
+						element = event.target;
+						while(!element.is(rootElement)) { //TODO 'root' refers to nothing-- should be the view element
+							ids = this._getEventBinding();
+							for(i = 0, len = ids.length; i < len; i++) {
+								callback = callbacksById[ids[i]];
+								ret = false;
+								
+								if(_.isFunction(callback)) {
+									ret = callback(event) || ret;
+									if(event.isPropagationStopped())
+										ret = false;
+								}
+							}
+							
+							if(ret !== true)
+								return false;
+							else
+								element = element.parent(); 
+						}
+				},
+				
+				_updateEvents: function() {
+					var oldEvents = this._handledEvents,
+						newEvents = _.keys(this._events),
+						toRemove = _.difference(newEvents, oldEvents),
+						toAdd = _.difference(oldEvents, newEvents);
+					
+					rootElement.off(toRemove.join(' '));
+					rootElement.on(toAdd.join(' '), this._eventHandler);
+					
+					this._handledEvents = newEvents;
+				}
+			}).invoke({
+				target: this._modelview,
+				template: this._template,
+				context: this._modelview
+			});
+				
+			context(rootContext);
+			$(rootContext.render()).appendTo(rootElement);
 			context.pop();
 			
-			//this._context.trigger('attach');
-			this._attachedToDom = true;
-			//TODO add a removedFromDom handler here to update status
+			this._context = rootContext;
+			this._attachedToDom = true; //?? Should this use JQuery to check?
 		}
-		else {
-			//TODO remove from existing position and rebind to 
-		}
-	}
+	});
 	
 	return View;
 });

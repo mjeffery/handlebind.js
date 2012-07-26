@@ -93,7 +93,7 @@ define(['lib/underscore', 'util/BaseObject'], function(_, BaseObject) {
 			
 			value = this._bindTarget(this._target, newSubs); 
 			
-			oldSubs.concat(newSubs);
+			this._subscriptions = oldSubs.concat(newSubs);
 			
 			return value;
 		},

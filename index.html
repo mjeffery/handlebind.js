@@ -18,12 +18,12 @@
 					<label>Last Name:</label>&nbsp;{{{value lastName}}}</br>
 					<label>Name:</label>&nbsp;{{{html fullName}}}</br>
 				{{/with}}
-            <a href="javascript:void(0)" {{{action toggleNames}}}>Toggle the Names!</a>
+            <a href="javascript:void(0)" {{{events click=toggleNames}}}>Toggle the Names!</a>
 			{{/if}}
-            <a href="javascript:void(0)" {{{action toggleNames}}}>Toggle the Names!</a>
+            <a href="javascript:void(0)" {{{events click=toggleNames}}}>Toggle the Names!</a>
 			</br>
-			<a href="javascript:void(0)" {{{action toggleNested}}}>Toggle Nested</a></br>
-			<a href="javascript:void(0)" {{{action toggleColors}}}>Toggle Colors</a></br>
+			<a href="javascript:void(0)" {{{events click=toggleNested}}}>Toggle Nested</a></br>
+			<a href="javascript:void(0)" {{{events click= toggleColors}}}>Toggle Colors</a></br>
 		</script>
 		<div id='app-container'></div></br>
 	</body>
