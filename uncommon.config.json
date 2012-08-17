@@ -1,0 +1,12 @@
+{
+	"name": "Handlebind",
+	"output": "dist/Handlebind-0.0.1-pre.js",
+	"main": "index.js",
+	"dependencies": {
+		"underscore": "_",
+		"jquery": "$",
+		"handlebars": "Handlebars",
+		"humble": "atlas"
+	},
+	"packaging": "global"
+}
