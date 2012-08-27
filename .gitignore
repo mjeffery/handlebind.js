@@ -1,4 +1,5 @@
 lib-cov
+node_modules
 *.seed
 *.log
 *.csv
@@ -12,6 +13,6 @@ logs
 results
 
 npm-debug.log
-node_modules
 
 .project
+.idea

@@ -1,6 +1,6 @@
 (function(root){
 	var __modules = {}, __defines = {};
-	function require(id) {
+	function uncommon(id) {
 		if(!__modules.hasOwnProperty(id)) {
 			
 			if(!__defines.hasOwnProperty(id))
@@ -14,25 +14,25 @@
 				value: new String(id) 
 			});
 			
-			__defines[id].call(root, require, module);
+			__defines[id].call(root, uncommon, module);
 			__modules[id] = module.exports;	
 		}
 		
 		return __modules[id];
 	};
 	
-	require.define = function(path, def) {
+	uncommon.define = function(path, def) {
 		if(__defines.hasOwnProperty(path))
 			throw new Error('Attempting to redefine module "'+ module + '"');
 			
 		__defines[path] = def;
 	}
-	require.define('_', function(require, module) { module.exports = root.underscore; });
-	require.define('$', function(require, module) { module.exports = root.jquery; });
-	require.define('Handlebars', function(require, module) { module.exports = root.handlebars; });
-	require.define('atlas', function(require, module) { module.exports = root.humble; });
+	uncommon.define('underscore', function(require, module) { module.exports = root._; });
+	uncommon.define('jquery', function(require, module) { module.exports = root.$; });
+	uncommon.define('handlebars', function(require, module) { module.exports = root.Handlebars; });
+	uncommon.define('humble', function(require, module) { module.exports = root.atlas; });
 
-	require.define('index.js', function(require, module) {
+	uncommon.define('index.js', function(require, module) {
 		require('lib/bind/helpers/with.js');
 		require('lib/bind/helpers/if.js');
 		require('lib/bind/helpers/each.js');
@@ -53,7 +53,7 @@
 		module.exports = Handlebind;
 	});
 
-	require.define('lib/bind/helpers/with.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/with.js', function(require, module) {
 		var Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js'), context = require('lib/bind/context.js');
 		Handlebars.helpers['_nobind_with'] = Handlebars.helpers['with'];
 		Handlebars.registerHelper('with', function (target, options) {
@@ -76,7 +76,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/if.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/if.js', function(require, module) {
 		var _ = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js'), context = require('lib/bind/context.js');
 		Handlebars.helpers['_nobind_if'] = Handlebars.helpers['if'];
 		Handlebars.registerHelper('if', function (target, options) {
@@ -101,7 +101,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/each.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/each.js', function(require, module) {
 		var Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js'), context = require('lib/bind/context.js');
 		Handlebars.helpers['_nobind_each'] = Handlebars.helpers['each'];
 		Handlebars.registerHelper('each', function (target, options) {
@@ -138,7 +138,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/text.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/text.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js');
 		context = require('lib/bind/context.js');
 		var ValueContext = MetamorphContext.extend({
@@ -159,7 +159,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/html.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/html.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), observable = require('lib/observe/observable.js'), context = require('lib/bind/context.js'), MetamorphContext = require('lib/context/MetamorphContext.js');
 		var HtmlContext = MetamorphContext.extend({
 		        renderContent: function (value) {
@@ -179,7 +179,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/unbound.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/unbound.js', function(require, module) {
 		var Handlebars = require('handlebars'), RenderContext = require('lib/context/RenderContext.js'), context = require('lib/bind/context.js');
 		Handlebars.registerHelper('unbound', function (options) {
 		    var unboundContext = RenderContext.extend({
@@ -198,7 +198,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/events.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/events.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), EventContext = require('lib/context/EventContext.js'), context = require('lib/bind/context.js');
 		Handlebars.registerHelper('events', function (options) {
 		    var event, handler, eventContext, id = _.uniqueId('hb');
@@ -215,7 +215,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/template.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/template.js', function(require, module) {
 		var Handlebars = require('handlebars'), TemplateContext = require('lib/context/TemplateContext.js'), context = require('lib/bind/context.js');
 		Handlebars.registerHelper('template', function (target, options) {
 		    var ret, templateContext = new TemplateContext({
@@ -231,7 +231,7 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/class.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/class.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), context = require('lib/bind/context.js'), AttributeContext = require('lib/context/AttributeContext.js');
 		var ClassContext = AttributeContext.extend({
 		        init: function (options) {
@@ -260,13 +260,14 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/value.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/value.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), ValueContext = require('lib/context/ValueContext.js'), context = require('lib/bind/context.js');
 		Handlebars.registerHelper('value', function (target, options) {
 		    var ret, valueContext = new ValueContext({
 		            target: target,
 		            parent: context(),
-		            bind: !(options.hash['unbound'] === true)
+		            bind: !(options.hash['unbound'] === true),
+		            update: options.hash['update']
 		        });
 		    context(valueContext);
 		    ret = valueContext.render();
@@ -275,8 +276,8 @@
 		});
 	});
 
-	require.define('lib/bind/helpers/hasFocus.js', function(require, module) {
-		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars'), RenderContext = require('lib/context/RenderContext.js'), context = require('lib/bind/context.js');
+	uncommon.define('lib/bind/helpers/hasFocus.js', function(require, module) {
+		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars'), RenderContext = require('lib/context/RenderContext.js'), EventContext = require('lib/context/EventContext.js'), context = require('lib/bind/context.js');
 		var HasFocusContext = RenderContext.extend({
 		        init: function (options) {
 		            this._super(options);
@@ -299,35 +300,37 @@
 		                var target = this.target(), value = _.isFunction(target) ? target() : target, element;
 		                this._bindEvents(target);
 		                if (this.bound()) {
-		                    element = $('[' + this._bind_name + '="' + this._bind_id + '"]');
+		                    element = $('[' + this._bind_name + '="' + this._bind_id + '"]').get(0);
 		                    value ? element.focus() : element.blur();
 		                }
 		            }
 		        },
 		        _bindEvents: function (target) {
+		            var self = this;
 		            this.disposeChildren();
 		            function focusUpdated(isFocused) {
-		                var activeElement = $(document.activeElement), element = $('[' + this._bind_name + '="' + this._bind_id + '"]');
+		                var activeElement = $(document.activeElement), element = $('[' + self._bind_name + '="' + self._bind_id + '"]').get(0);
 		                isFocused = element.is(activeElement);
 		                if (_.isSubscribable(target)) {
-		                    this._updating_target = true;
+		                    self._updating_target = true;
 		                    target(isFocused);
-		                    this._updating_target = false;
+		                    self._updating_target = false;
 		                }
 		            }
 		            function bindEvent(event, callback) {
 		                new EventContext({
-		                    id: this._bind_id,
+		                    id: self._bind_id,
 		                    event: event,
 		                    target: callback,
-		                    parent: this
+		                    parent: self
 		                });
 		            }
-		            var focus = focusUpdated.bind(this, true), blur = focusUpdated.bind(this, false), bind = bindEvent.bind(this);
-		            bind('focus', focus);
-		            bind('focusin', focus);
-		            bind('blur', blur);
-		            bind('focusout', blur);
+		            bindEvent('focus', function () {
+		                focus(true);
+		            });
+		            bindEvent('blur', function () {
+		                focus(false);
+		            });
 		        }
 		    });
 		Handlebars.registerHelper('hasFocus', function (target, options) {
@@ -342,7 +345,7 @@
 		});
 	});
 
-	require.define('lib/observe/observable.js', function(require, module) {
+	uncommon.define('lib/observe/observable.js', function(require, module) {
 		var _ = require('underscore'), subscribable = require('lib/observe/subscribable.js'), dependencyDetection = require('lib/observe/dependencyDetection.js');
 		var primitiveTypes = {
 		        'undefined': true,
@@ -384,7 +387,7 @@
 		module.exports = observable;
 	});
 
-	require.define('lib/observe/observableArray.js', function(require, module) {
+	uncommon.define('lib/observe/observableArray.js', function(require, module) {
 		var _ = require('underscore'), observable = require('lib/observe/observable.js'), dependencyDetection = require('lib/observe/dependencyDetection.js');
 		_.mixin({
 		    'isObservableArray': function (instance) {
@@ -465,7 +468,7 @@
 		module.exports = observableArray;
 	});
 
-	require.define('lib/observe/computed.js', function(require, module) {
+	uncommon.define('lib/observe/computed.js', function(require, module) {
 		var _ = require('underscore'), subscribable = require('lib/observe/subscribable.js'), observable = require('lib/observe/observable.js'), dependencyDetection = require('lib/observe/dependencyDetection.js');
 		var computed = function (evaluatorFunctionOrOptions, evaluatorFunctionTarget, options) {
 		    var _latestValue, _hasBeenEvaluated = false, _isBeingEvaluated = false, readFunction = evaluatorFunctionOrOptions;
@@ -567,7 +570,7 @@
 		module.exports = computed;
 	});
 
-	require.define('lib/bind/View.js', function(require, module) {
+	uncommon.define('lib/bind/View.js', function(require, module) {
 		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars'), humble = require('humble'), TemplateContext = require('lib/context/TemplateContext.js'), context = require('lib/bind/context.js');
 		var ViewContext = TemplateContext.extend({
 		        init: function (options) {
@@ -658,7 +661,7 @@
 		module.exports = View;
 	});
 
-	require.define('lib/context/MetamorphContext.js', function(require, module) {
+	uncommon.define('lib/context/MetamorphContext.js', function(require, module) {
 		var _ = require('underscore'), jquery = require('jquery'), Metamorph = require('lib/util/metamorph.js'), RenderContext = require('lib/context/RenderContext.js'), context = require('lib/bind/context.js');
 		var MetamorphContext = RenderContext.extend({
 		        renderContent: function (value) {
@@ -695,7 +698,7 @@
 		module.exports = MetamorphContext;
 	});
 
-	require.define('lib/bind/context.js', function(require, module) {
+	uncommon.define('lib/bind/context.js', function(require, module) {
 		var _ = require('underscore');
 		var _TOP = null;
 		function context() {
@@ -715,7 +718,7 @@
 		module.exports = context;
 	});
 
-	require.define('lib/context/RenderContext.js', function(require, module) {
+	uncommon.define('lib/context/RenderContext.js', function(require, module) {
 		var _ = require('underscore'), BindingContext = require('lib/context/BindingContext.js');
 		var RenderContext = BindingContext.extend({
 		        render: function () {
@@ -738,7 +741,7 @@
 		module.exports = RenderContext;
 	});
 
-	require.define('lib/context/EventContext.js', function(require, module) {
+	uncommon.define('lib/context/EventContext.js', function(require, module) {
 		var _ = require('underscore'), $ = require('jquery'), BindingContext = require('lib/context/BindingContext.js');
 		var EventContext = BindingContext.extend({
 		        init: function (options) {
@@ -768,7 +771,7 @@
 		module.exports = EventContext;
 	});
 
-	require.define('lib/context/TemplateContext.js', function(require, module) {
+	uncommon.define('lib/context/TemplateContext.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), getTemplate = require('lib/bind/template.js'), MetamorphContext = require('lib/context/MetamorphContext.js');
 		var TemplateContext = MetamorphContext.extend({
 		        init: function (options) {
@@ -801,7 +804,7 @@
 		module.exports = TemplateContext;
 	});
 
-	require.define('lib/context/AttributeContext.js', function(require, module) {
+	uncommon.define('lib/context/AttributeContext.js', function(require, module) {
 		var _ = require('underscore'), $ = require('jquery'), BindingContext = require('lib/context/BindingContext.js');
 		RenderContext = require('lib/context/RenderContext.js');
 		var ValueContext = BindingContext.extend({
@@ -868,11 +871,10 @@
 		module.exports = AttributeContext;
 	});
 
-	require.define('lib/context/ValueContext.js', function(require, module) {
+	uncommon.define('lib/context/ValueContext.js', function(require, module) {
 		var _ = require('underscore'), $ = require('jquery'), nullSafe = require('lib/util/nullSafe.js'), RenderContext = require('lib/context/RenderContext.js');
 		var VALID_UPDATES = [
 		        'change',
-		        'keypress',
 		        'keyup'
 		    ];
 		var ValueContext = RenderContext.extend({
@@ -885,6 +887,7 @@
 		                throw new Error('The update policy "' + options.update + '" is not supported by {{value}}');
 		            this._bind_id = _.uniqueId('hb');
 		            this._updatePolicy = options.update;
+		            this._is_updating = false;
 		        },
 		        render: function () {
 		            var target = this.target(), value = nullSafe.toString(_.isFunction(target) ? target() : target);
@@ -893,7 +896,7 @@
 		            return ' value-bind="' + id + '" value="' + value + '"';
 		        },
 		        rerender: function () {
-		            if (this.bound()) {
+		            if (this.bound() && !this._is_updating) {
 		                var target = this.target(), value = nullSafe.toString(_.isFunction(target) ? target() : target), id = this._bind_id, event = this._updatePolicy;
 		                this._disposeEvent();
 		                this._registerEvent(target);
@@ -905,10 +908,12 @@
 		            this._super();
 		        },
 		        _registerEvent: function (target) {
-		            var id = this._bind_id, event = this._updatePolicy;
+		            var id = this._bind_id, event = this._updatePolicy, self = this;
 		            if (this.$rootContext.registerEvent && _.isSubscribable(target)) {
 		                this.$rootContext.registerEvent(id, event, function () {
+		                    self._is_updating = true;
 		                    target($('[value-bind="' + id + '"]').attr('value'));
+		                    self._is_updating = false;
 		                });
 		            }
 		        },
@@ -921,7 +926,7 @@
 		module.exports = ValueContext;
 	});
 
-	require.define('lib/observe/subscribable.js', function(require, module) {
+	uncommon.define('lib/observe/subscribable.js', function(require, module) {
 		var _ = require('underscore'), arrays = require('lib/util/arrays.js'), Subscription = require('lib/observe/Subscription.js');
 		_.mixin({
 		    'isSubscribable': function (instance) {
@@ -963,7 +968,7 @@
 		module.exports = subscribable;
 	});
 
-	require.define('lib/observe/dependencyDetection.js', function(require, module) {
+	uncommon.define('lib/observe/dependencyDetection.js', function(require, module) {
 		var _ = require('underscore');
 		var _frames = [], dependencyDetection = {
 		        begin: function (callback) {
@@ -990,7 +995,7 @@
 		module.exports = dependencyDetection;
 	});
 
-	require.define('lib/util/metamorph.js', function(require, module) {
+	uncommon.define('lib/util/metamorph.js', function(require, module) {
 		// ==========================================================================
 		// Project:   metamorph
 		// Copyright: ©2011 My Company Inc. All rights reserved.
@@ -1387,7 +1392,7 @@
 		module.exports = Metamorph;
 	});
 
-	require.define('lib/context/BindingContext.js', function(require, module) {
+	uncommon.define('lib/context/BindingContext.js', function(require, module) {
 		var _ = require('underscore'), humble = require('humble');
 		var matchRoot = /^\$root\./i, matchLeadingParent = /^\$parent\.*/i, matchParentsIndexer = /^\$parents\[([0-9]){1,}\]\./i, matchFuncCall = /(.*?)\(\)/i, matchIndexer = /(.*?)\[([0-9]){1,}\]/i;
 		var BindingContext = humble.Object.extend({
@@ -1546,7 +1551,7 @@
 		module.exports = BindingContext;
 	});
 
-	require.define('lib/bind/template.js', function(require, module) {
+	uncommon.define('lib/bind/template.js', function(require, module) {
 		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars');
 		var _compiledTemplates = {};
 		function template(name) {
@@ -1563,7 +1568,7 @@
 		module.exports = template;
 	});
 
-	require.define('lib/util/nullSafe.js', function(require, module) {
+	uncommon.define('lib/util/nullSafe.js', function(require, module) {
 		var nullSafe = {
 			toString: function(value) {
 				if(value !== undefined && value !== null)
@@ -1575,7 +1580,7 @@
 		module.exports = nullSafe;
 	});
 
-	require.define('lib/util/arrays.js', function(require, module) {
+	uncommon.define('lib/util/arrays.js', function(require, module) {
 		var _ = require('underscore');
 		var arrays = {
 		        remove: function (array, itemToRemove) {
@@ -1588,7 +1593,7 @@
 		module.exports = arrays;
 	});
 
-	require.define('lib/observe/Subscription.js', function(require, module) {
+	uncommon.define('lib/observe/Subscription.js', function(require, module) {
 		/**
 		 * @class Subscription 
 		 */
@@ -1606,5 +1611,5 @@
 		module.exports = Subscription;
 	});
 
-	root.Handlebind = require('index.js');
+	root.Handlebind = uncommon('index.js');
 })(this);
