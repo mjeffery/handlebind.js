@@ -30,7 +30,7 @@
 	uncommon.define('underscore', function(require, module) { module.exports = root._; });
 	uncommon.define('jquery', function(require, module) { module.exports = root.$; });
 	uncommon.define('handlebars', function(require, module) { module.exports = root.Handlebars; });
-	uncommon.define('humble', function(require, module) { module.exports = root.atlas; });
+	uncommon.define('humble', function(require, module) { module.exports = root.humble; });
 
 	uncommon.define('index.js', function(require, module) {
 		require('lib/bind/helpers/with.js');
@@ -109,12 +109,12 @@
 		            renderContent: function (item) {
 		                return new Handlebars.SafeString(fn(item));
 		            }
-		        }), eachContext = new MetamorphContext.extend({
+		        }), eachContext = MetamorphContext.extend({
 		            renderContent: function (items) {
 		                var itemContext, ret = '';
 		                if (items && items.length > 0) {
 		                    for (var i = 0, j = items.length; i < j; i++) {
-		                        itemContext = ItemContext.create({
+		                        itemContext = ItemContext.invoke({
 		                            target: items[i],
 		                            parent: context()
 		                        });
