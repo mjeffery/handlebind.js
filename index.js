@@ -8,6 +8,9 @@ require('./lib/bind/helpers/events');
 require('./lib/bind/helpers/template');
 require('./lib/bind/helpers/class');
 require('./lib/bind/helpers/value');
+require('./lib/bind/helpers/enabled');
+require('./lib/bind/helpers/disabled');
+require('./lib/bind/helpers/checked');
 require('./lib/bind/helpers/hasFocus');
 
 var Handlebind = {
