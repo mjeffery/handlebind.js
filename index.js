@@ -12,6 +12,10 @@ require('./lib/bind/helpers/enabled');
 require('./lib/bind/helpers/disabled');
 require('./lib/bind/helpers/checked');
 require('./lib/bind/helpers/hasFocus');
+require('./lib/bind/helpers/options');
+require('./lib/bind/helpers/props');
+
+require('./lib/bind/helpers/action');
 
 var Handlebind = {
 	observable: require('./lib/observe/observable'),
