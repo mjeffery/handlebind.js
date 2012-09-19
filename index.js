@@ -6,12 +6,13 @@ require('./lib/bind/helpers/html');
 require('./lib/bind/helpers/unbound');
 require('./lib/bind/helpers/events');
 require('./lib/bind/helpers/template');
+require('./lib/bind/helpers/attrs');
 require('./lib/bind/helpers/class');
 require('./lib/bind/helpers/value');
 require('./lib/bind/helpers/enabled');
 require('./lib/bind/helpers/disabled');
 require('./lib/bind/helpers/checked');
-require('./lib/bind/helpers/hasFocus');
+require('./lib/bind/helpers/focused');
 require('./lib/bind/helpers/options');
 require('./lib/bind/helpers/props');
 

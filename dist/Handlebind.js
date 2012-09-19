@@ -41,12 +41,16 @@
 		require('lib/bind/helpers/unbound.js');
 		require('lib/bind/helpers/events.js');
 		require('lib/bind/helpers/template.js');
+		require('lib/bind/helpers/attrs.js');
 		require('lib/bind/helpers/class.js');
 		require('lib/bind/helpers/value.js');
 		require('lib/bind/helpers/enabled.js');
 		require('lib/bind/helpers/disabled.js');
 		require('lib/bind/helpers/checked.js');
-		require('lib/bind/helpers/hasFocus.js');
+		require('lib/bind/helpers/focused.js');
+		require('lib/bind/helpers/options.js');
+		require('lib/bind/helpers/props.js');
+		require('lib/bind/helpers/action.js');
 		var Handlebind = {
 		        observable: require('lib/observe/observable.js'),
 		        observableArray: require('lib/observe/observableArray.js'),
@@ -70,7 +74,8 @@
 		        }).invoke({
 		            target: target,
 		            parent: context(),
-		            bind: !(options.hash['unbound'] === true)
+		            bind: !(options.hash['unbound'] === true),
+		            symbol: options.hash['symbol']
 		        });
 		    context(withContext);
 		    ret = withContext.render();
@@ -119,7 +124,9 @@
 		                    for (var i = 0, j = items.length; i < j; i++) {
 		                        itemContext = ItemContext.invoke({
 		                            target: items[i],
-		                            parent: context()
+		                            parent: context(),
+		                            index: i,
+		                            symbol: options.hash['itemSymbol']
 		                        });
 		                        context(itemContext);
 		                        ret = ret + itemContext.render();
@@ -132,7 +139,8 @@
 		        }).invoke({
 		            target: target,
 		            parent: context(),
-		            bind: !(options.hash['unbound'] === true)
+		            bind: !(options.hash['unbound'] === true),
+		            symbol: options.hash['symbol']
 		        }), ret = '';
 		    context(eachContext);
 		    ret = eachContext.render();
@@ -142,35 +150,25 @@
 	});
 
 	uncommon.define('lib/bind/helpers/text.js', function(require, module) {
-		var _ = require('underscore'), Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js');
+		var Handlebars = require('handlebars'), TextContext = require('lib/context/TextContext.js');
 		context = require('lib/bind/context.js');
-		var ValueContext = MetamorphContext.extend({
-		        renderContent: function (value) {
-		            return !(!value) ? Handlebars.Utils.escapeExpression(value.toString()) : '';
-		        }
-		    });
 		Handlebars.registerHelper('text', function (target, options) {
-		    var ret, valueContext = new ValueContext({
+		    var ret, textContext = new TextContext({
 		            target: target,
 		            parent: context(),
 		            bind: !(options.hash['unbound'] === true)
 		        });
-		    context(valueContext);
-		    ret = valueContext.render();
+		    context(textContext);
+		    ret = textContext.render();
 		    context.pop();
-		    return ret;
+		    return new Handlebars.SafeString(ret);
 		});
 	});
 
 	uncommon.define('lib/bind/helpers/html.js', function(require, module) {
-		var _ = require('underscore'), Handlebars = require('handlebars'), observable = require('lib/observe/observable.js'), context = require('lib/bind/context.js'), MetamorphContext = require('lib/context/MetamorphContext.js');
-		var HtmlContext = MetamorphContext.extend({
-		        renderContent: function (value) {
-		            return !(!value) ? new Handlebars.SafeString(value.toString()) : '';
-		        }
-		    });
+		var Handlebars = require('handlebars'), context = require('lib/bind/context.js'), MetamorphContext = require('lib/context/MetamorphContext.js');
 		Handlebars.registerHelper('html', function (target, options) {
-		    var ret, htmlContext = new HtmlContext({
+		    var ret, htmlContext = new MetamorphContext({
 		            target: target,
 		            parent: context(),
 		            bind: !(options.hash['unbound'] === true)
@@ -178,7 +176,7 @@
 		    context(htmlContext);
 		    ret = htmlContext.render();
 		    context.pop();
-		    return ret;
+		    return new Handlebars.SafeString(ret);
 		});
 	});
 
@@ -204,14 +202,15 @@
 	uncommon.define('lib/bind/helpers/events.js', function(require, module) {
 		var _ = require('underscore'), Handlebars = require('handlebars'), EventContext = require('lib/context/EventContext.js'), context = require('lib/bind/context.js');
 		Handlebars.registerHelper('events', function (options) {
-		    var event, handler, eventContext, id = _.uniqueId('hb');
+		    var event, handler, eventContext, parent = context(), data = parent.target(), id = _.uniqueId('hb');
 		    for (event in options.hash) {
 		        handler = options.hash[event];
 		        eventContext = new EventContext({
 		            event: event,
 		            target: handler,
+		            data: _.isFunction(data) ? data() : data,
 		            id: id,
-		            parent: context()
+		            parent: parent
 		        });
 		    }
 		    return new Handlebars.SafeString(' event-bind="' + id + '" ');
@@ -225,10 +224,25 @@
 		            target: target,
 		            context: options.hash['context'] || this,
 		            parent: context(),
-		            bind: !(options.hash['unbound'] === true)
+		            bind: !(options.hash['unbound'] === true),
+		            symbol: options.hash['symbol']
 		        });
 		    context(templateContext);
 		    ret = templateContext.render();
+		    context.pop();
+		    return new Handlebars.SafeString(ret);
+		});
+	});
+
+	uncommon.define('lib/bind/helpers/attrs.js', function(require, module) {
+		var _ = require('underscore'), Handlebars = require('handlebars'), AttributesContext = require('lib/context/AttributeContext.js'), context = require('lib/bind/context.js');
+		Handlebars.registerHelper('attrs', function (target, options) {
+		    var ret, attributesContext = new AttributesContext({
+		            target: target === undefined ? options.hash || {} : target,
+		            parent: context
+		        });
+		    context(attributesContext);
+		    ret = attributesContext.render();
 		    context.pop();
 		    return ret;
 		});
@@ -343,9 +357,9 @@
 		});
 	});
 
-	uncommon.define('lib/bind/helpers/hasFocus.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/focused.js', function(require, module) {
 		var Handlebars = require('handlebars'), FocusContext = require('lib/context/FocusContext.js'), context = require('lib/bind/context.js');
-		Handlebars.registerHelper('hasFocus', function (target, options) {
+		Handlebars.registerHelper('focused', function (target, options) {
 		    var ret, focusContext = new FocusContext({
 		            target: target,
 		            parent: context()
@@ -353,6 +367,63 @@
 		    context(focusContext);
 		    ret = focusContext.render();
 		    context.pop();
+		    return new Handlebars.SafeString(ret);
+		});
+	});
+
+	uncommon.define('lib/bind/helpers/options.js', function(require, module) {
+		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars'), OptionsContext = require('lib/context/OptionsContext.js'), context = require('lib/bind/context.js');
+		Handlebars.registerHelper('options', function (target, options) {
+		    var ret, selectContext = new OptionsContext({
+		            target: target,
+		            parent: context(),
+		            bind: !(options.hash['unbound'] === true),
+		            text: options.hash['text'],
+		            caption: options.hash['caption'],
+		            selected: options.hash['selected']
+		        });
+		    context(selectContext);
+		    ret = selectContext.render();
+		    context.pop();
+		    return new Handlebars.SafeString(ret);
+		});
+	});
+
+	uncommon.define('lib/bind/helpers/props.js', function(require, module) {
+		var Handlebars = require('handlebars'), PropertyContext = require('lib/context/PropertyContext.js'), context = require('lib/bind/context.js');
+		Handlebars.registerHelper('props', function (options) {
+		    var prop, propContext, parent = context(), id = _.uniqueId('hb'), ret = ' props-bind="' + id + '" ';
+		    for (prop in options.hash) {
+		        propContext = new PropertyContext({
+		            target: options.hash[prop],
+		            parent: parent,
+		            name: prop,
+		            bind_name: 'props-bind',
+		            bind_id: id,
+		            sharing_bind: true
+		        });
+		        context(propContext);
+		        ret += propContext.render();
+		        context.pop();
+		    }
+		    return new Handlebars.SafeString(ret);
+		});
+	});
+
+	uncommon.define('lib/bind/helpers/action.js', function(require, module) {
+		var Handlebars = require('handlebars');
+		Handlebars.registerHelper('action', function (target, options) {
+		    var ret = '<a href="javascript:void(0)" ', label = options.hash['label'];
+		    ret += Handlebars.helpers['events'].call(this, {
+		        hash: {
+		            click: target
+		        }
+		    });
+		    ret += '>';
+		    ret += Handlebars.helpers['text'].call(this, label, {
+		        hash: {}
+		    });
+		    ret += '</a>';
 		    return new Handlebars.SafeString(ret);
 		});
 	});
@@ -425,7 +496,7 @@
 		                if (removedValues.length === 0) {
 		                    this.valueWillMutate();
 		                }
-		                removeValues.push(value);
+		                removedValues.push(value);
 		                underlyingArray.splice(i, 1);
 		                i--;
 		            }
@@ -623,12 +694,21 @@
 		            this._events = {};
 		            this._handledEvents = [];
 		            this._isAttached = false;
+		            this._postRenderCallbacks = [];
 		        },
-		        registerEvent: function (id, event, callback) {
+		        clean: function () {
+		            this._super();
+		            this._updateFocus();
+		            this._postRender();
+		        },
+		        registerEvent: function (id, event, callback, data) {
 		            var callbacksById = this._events[event];
 		            if (callbacksById === undefined)
 		                this._events[event] = callbacksById = {};
-		            callbacksById[id] = callback;
+		            callbacksById[id] = {
+		                callback: callback,
+		                data: data
+		            };
 		            if (this._isAttached)
 		                this._updateEvents();
 		        },
@@ -639,12 +719,24 @@
 		            if (this._isAttached)
 		                this._updateEvents();
 		        },
+		        setFocus: function (elementOrSelector) {
+		            this._toFocus = elementOrSelector;
+		        },
+		        doPostRender: function (callback, context) {
+		            if (_.isFunction(callback)) {
+		                this._postRenderCallbacks.push({
+		                    callback: callback,
+		                    context: context
+		                });
+		            }
+		        },
 		        _getEventBindings: function (element) {
 		            var attrs = [
 		                    'event-bind',
 		                    'update-bind',
 		                    'value-bind',
-		                    'focus-bind'
+		                    'focus-bind',
+		                    'selected-bind'
 		                ], ids = [], id, i, len = attrs.length;
 		            for (i = 0; i < len; i++) {
 		                id = element.attr(attrs[i]);
@@ -652,6 +744,20 @@
 		                    ids.push(id);
 		            }
 		            return ids;
+		        },
+		        _updateFocus: function () {
+		            if (this._toFocus) {
+		                var activeElement = $(document.activeElement), element = $(this._toFocus).get(0), isFocused = activeElement.is(element);
+		                if (!isFocused)
+		                    element.focus();
+		                this._toFocus = null;
+		            }
+		        },
+		        _postRender: function () {
+		            var callbacks = this._postRenderCallbacks.splice(0, this._postRenderCallbacks.length);
+		            _.each(callbacks, function (postRender) {
+		                postRender.callback.call(postRender.context);
+		            });
 		        }
 		    });
 		var View = humble.Object.extend({
@@ -662,7 +768,7 @@
 		        appendTo: function (elementOrSelector) {
 		            var rootElement = $(elementOrSelector), rootContext = ViewContext.extend({
 		                    _eventHandler: function (event) {
-		                        var callbacksById, element, ids, i, len, callback, ret;
+		                        var callbacksById, element, ids, i, len, info, ret;
 		                        callbacksById = rootContext._events[event.type];
 		                        if (callbacksById === undefined)
 		                            return;
@@ -670,18 +776,21 @@
 		                        while (!element.is(rootElement)) {
 		                            ids = rootContext._getEventBindings(element);
 		                            for (i = 0, len = ids.length; i < len; i++) {
-		                                callback = callbacksById[ids[i]];
+		                                info = callbacksById[ids[i]];
 		                                ret = undefined;
-		                                if (_.isFunction(callback)) {
-		                                    ret = callback(event);
+		                                if (info && _.isFunction(info.callback)) {
+		                                    ret = info.callback(event, info.data);
 		                                }
 		                            }
 		                            if (ret === false)
 		                                return false;
 		                            else if (event.isPropagationStopped())
 		                                return;
-		                            else
+		                            else {
 		                                element = element.parent();
+		                                if (element.length == 0)
+		                                    return;
+		                            }
 		                        }
 		                    },
 		                    _updateEvents: function () {
@@ -702,6 +811,8 @@
 		            context.pop();
 		            rootContext._isAttached = true;
 		            rootContext._updateEvents();
+		            rootContext._updateFocus();
+		            rootContext._postRender();
 		            this._context = rootContext;
 		        }
 		    });
@@ -720,21 +831,19 @@
 		        render: function () {
 		            var target = this.target(), value = _.isFunction(target) ? target() : target;
 		            if (this.bound()) {
-		                if (!this._metamorph) {
+		                if (!this._metamorph)
 		                    this._metamorph = new Metamorph(this.renderContent(value));
-		                    return new Handlebars.SafeString(this._metamorph.outerHTML());
-		                } else
-		                    return this._metamorph.outerHTML();
+		                return this._metamorph.outerHTML();
 		            } else
 		                return this.renderContent(value);
 		        },
 		        rerender: function () {
 		            if (this._metamorph) {
-		                var oldContext = context(), target = this.target(), value = _.isFunction(target) ? target() : target;
+		                var target = this.target(), value = _.isFunction(target) ? target() : target;
 		                context(this);
 		                this.disposeChildren();
-		                this._metamorph.html(Handlebars.Utils.escapeExpression(this.renderContent(value)));
-		                context(oldContext);
+		                this._metamorph.html(this.renderContent(value));
+		                context.pop();
 		            }
 		        },
 		        dispose: function () {
@@ -763,6 +872,19 @@
 		    }
 		});
 		module.exports = context;
+	});
+
+	uncommon.define('lib/context/TextContext.js', function(require, module) {
+		var Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js');
+		var TextContext = MetamorphContext.extend({
+		        renderContent: function (value) {
+		            return !(!value) ? Handlebars.Utils.escapeExpression(value.toString()) : '';
+		        },
+		        targetUpdated: function () {
+		            this._super();
+		        }
+		    });
+		module.exports = TextContext;
 	});
 
 	uncommon.define('lib/context/RenderContext.js', function(require, module) {
@@ -797,11 +919,13 @@
 		                event: 'click',
 		                id: _.uniqueId('hb')
 		            });
-		            var target = this.target(), event = options.event, id = options.id;
+		            var data = options.data;
+		            target = this.target(), event = options.event, id = options.id;
 		            if (this.$rootContext.registerEvent)
-		                this.$rootContext.registerEvent(id, event, target);
-		            this._event = options.event;
-		            this._bind_id = options.id;
+		                this.$rootContext.registerEvent(id, event, target, data);
+		            this._data = data;
+		            this._event = event;
+		            this._bind_id = id;
 		        },
 		        dispose: function () {
 		            this._super();
@@ -810,9 +934,9 @@
 		                this.$rootContext.disposeEvent(id, event);
 		        },
 		        targetUpdated: function () {
-		            var target = this.target(), event = this._event, id = this._bind_id;
+		            var data = this._data, target = this.target(), event = this._event, id = this._bind_id;
 		            if (this.$rootContext.registerEvent)
-		                this.$rootContext.registerEvent(id, event, target);
+		                this.$rootContext.registerEvent(id, event, target, data);
 		        }
 		    });
 		module.exports = EventContext;
@@ -830,14 +954,22 @@
 		            this._context = options.context;
 		        },
 		        target: function () {
-		            var oldSubs = this._subscriptions, newSubs = [], value;
-		            _.invoke(oldSubs, 'dispose');
-		            oldSubs.splice(0, oldSubs.length);
-		            value = {
-		                template: this._bindTarget(this._template, newSubs),
-		                context: this._bindTarget(this._context, newSubs)
-		            };
-		            oldSubs.concat(newSubs);
+		            var disposalCandidates = _.pluck(this._subscriptions, 'target'), self = this, callback = function (target) {
+		                    if (_.isSubscribable(target) && self.bind()) {
+		                        var inOld = _.indexOf(disposalCandidates, target);
+		                        if (inOld >= 0)
+		                            disposalCandidates[inOld] = undefined;
+		                        else
+		                            self._subscriptions.push(target.subscribe(self.targetUpdated, self));
+		                    }
+		                }, value = {
+		                    template: this._bindTarget(this._template, callback),
+		                    context: this._bindTarget(this._context, callback)
+		                };
+		            for (var i = disposalCandidates.length - 1; i >= 0; i--) {
+		                if (disposalCandidates[i])
+		                    this._subscriptions.splice(i, 1)[0].dispose();
+		            }
 		            return value;
 		        },
 		        renderContent: function (desc) {
@@ -954,15 +1086,21 @@
 		            _.defaults(options, {
 		                bind_name: 'prop-bind',
 		                bind_id: _.uniqueId('hb'),
-		                name: _.uniqueId('undefined_prop')
+		                name: _.uniqueId('undefined_prop'),
+		                sharing_bind: false
 		            });
+		            this._sharing_bind = options.sharing_bind;
 		            this._bind_name = options.bind_name;
 		            this._bind_id = options.bind_id;
 		            this._name = options.name;
 		        },
 		        render: function () {
-		            var target = this.target(), value = _.isFunction(target) ? target() : target;
-		            return ' ' + this._bind_name + '="' + this._bind_id + '" ' + (!(!value) ? this._name + ' ' : ' ');
+		            var target = this.target(), value = _.isFunction(target) ? target() : target, ret = ' ';
+		            if (!this._sharing_bind)
+		                ret += this._bind_name + '="' + this._bind_id + '" ';
+		            if (!(!value))
+		                ret += this._name + ' ';
+		            return ret;
 		        },
 		        rerender: function () {
 		            if (this.bound()) {
@@ -977,6 +1115,10 @@
 	uncommon.define('lib/util/dom.js', function(require, module) {
 		var $ = require('jquery');
 		var dom = {
+		        boundSelector: function (data) {
+		            var name = data._bind_name, id = data._bind_id;
+		            return '[' + name + '="' + id + '"]';
+		        },
 		        boundElement: function (data) {
 		            var name = data._bind_name, id = data._bind_id;
 		            return $('[' + name + '="' + id + '"]');
@@ -1066,6 +1208,8 @@
 		            this._super(options);
 		        },
 		        renderValue: function (value) {
+		            if (value && _.isFunction(this.$rootContext.setFocus))
+		                this.$rootContext.setFocus(dom.boundSelector(this));
 		            return '';
 		        },
 		        pushValue: function (value) {
@@ -1079,6 +1223,54 @@
 		        }
 		    });
 		module.exports = FocusContext;
+	});
+
+	uncommon.define('lib/context/OptionsContext.js', function(require, module) {
+		var _ = require('underscore'), $ = require('jquery'), CaptionContext = require('lib/context/options/CaptionContext.js'), OptionListContext = require('lib/context/options/OptionListContext.js'), SelectedOptionsContext = require('lib/context/options/SelectedOptionsContext.js'), RenderContext = require('lib/context/RenderContext.js');
+		var OptionsContext = RenderContext.extend({
+		        init: function (options) {
+		            this._super(options);
+		            this._caption = options.caption;
+		            this._text = options.text;
+		            this._selected = options.selected;
+		        },
+		        render: function () {
+		            var context, ret = '';
+		            if (this._caption) {
+		                context = new CaptionContext({
+		                    target: this._caption,
+		                    parent: this
+		                });
+		                ret += context.render();
+		            }
+		            context = OptionListContext.extend({
+		                init: function (options) {
+		                    this._super(options);
+		                    this._selected = options.selected;
+		                },
+		                renderContent: function (options) {
+		                    var context, ret = this._super(options);
+		                    if (this._selected) {
+		                        context = new SelectedOptionsContext({
+		                            target: this._selected,
+		                            parent: this,
+		                            model: this.target()
+		                        });
+		                        ret += context.render();
+		                    }
+		                    return ret;
+		                }
+		            }).invoke({
+		                target: this._target,
+		                parent: this,
+		                text: this._text,
+		                selected: this._selected
+		            });
+		            ret += context.render();
+		            return ret;
+		        }
+		    });
+		module.exports = OptionsContext;
 	});
 
 	uncommon.define('lib/observe/subscribable.js', function(require, module) {
@@ -1549,7 +1741,7 @@
 
 	uncommon.define('lib/context/BindingContext.js', function(require, module) {
 		var _ = require('underscore'), humble = require('humble');
-		var matchRoot = /^\$root\./i, matchLeadingParent = /^\$parent\.*/i, matchParentsIndexer = /^\$parents\[([0-9]){1,}\]\./i, matchFuncCall = /(.*?)\(\)/i, matchIndexer = /(.*?)\[([0-9]){1,}\]/i;
+		var matchRoot = /^\$root\./i, matchLeadingParent = /^\$parent\.*/i, matchParentsIndexer = /^\$parents\[([0-9]){1,}\]\./i, matchLabel = /^\$([@#\$_%\d\w]+)\./i, matchFuncCall = /(.*?)\(\)/i, matchIndexer = /(.*?)\[([0-9]){1,}\]/i;
 		var BindingContext = humble.Object.extend({
 		        init: function (options) {
 		            _.defaults(options, {
@@ -1564,21 +1756,32 @@
 		                var parent = options['parent'];
 		                this['$rootContext'] = parent['$rootContext'];
 		                this['$parentContext'] = parent;
-		                this['$parent'] = parent.target();
-		                this['$parents'] = (parent['$parents'] || []).slice(0);
-		                this['$parents'].unshift(this['$parent']);
-		                this['$root'] = parent['$root'];
 		                parent['children'] = parent['children'] || [];
 		                parent['children'].push(this);
 		            } else {
 		                this['$rootContext'] = this;
 		                this['$parentContext'] = null;
-		                this['$parent'] = null;
-		                this['$parents'] = [];
-		                this['$root'] = this._target;
 		            }
 		            this.children = [];
 		            this._isDirty = false;
+		            if (!(!options['symbol'])) {
+		                if (_.isString(options['symbol'])) {
+		                    var i, len, label, labels = options.symbol.split(',');
+		                    for (i = 0, len = labels.length; i < len; i++) {
+		                        label = labels[i];
+		                        if (!/^[@#\$_%\d\w]+$/.test(label))
+		                            throw new Error('"' + label + '" is not a valid symbol!');
+		                        switch (label) {
+		                        case 'root':
+		                        case 'parent':
+		                        case 'parents':
+		                            throw new Error('"' + label + '" is reserved and cannot be used as a symbol');
+		                            break;
+		                        }
+		                    }
+		                    this.$symbols = labels;
+		                }
+		            }
 		        },
 		        bind: function () {
 		            if (arguments.length > 0) {
@@ -1616,13 +1819,13 @@
 		            this._disposed = true;
 		        },
 		        target: function () {
-		            var disposalCandidates = _.pluck(this._subscriptions, 'target'), value = this._bindTarget(this._target, function (target) {
-		                    if (_.isSubscribable(target) && this.bind()) {
-		                        var inOld = _.indexOf(disposalCandidates, subscribable);
+		            var disposalCandidates = _.pluck(this._subscriptions, 'target'), self = this, value = this._bindTarget(this._target, function (target) {
+		                    if (_.isSubscribable(target) && self.bind()) {
+		                        var inOld = _.indexOf(disposalCandidates, target);
 		                        if (inOld >= 0)
 		                            disposalCandidates[inOld] = undefined;
 		                        else
-		                            this._subscriptions.push(target.subscribe(this.targetUpdated, this));
+		                            self._subscriptions.push(target.subscribe(self.targetUpdated, self));
 		                    }
 		                });
 		            for (var i = disposalCandidates.length - 1; i >= 0; i--) {
@@ -1644,13 +1847,11 @@
 		        _bindTargetPath: function (path, callback, context) {
 		            var matches;
 		            if (_.isString(path) && path.length > 0) {
-		                if (context === undefined)
-		                    context = this['$data'];
 		                if (path.charAt(0) === '$') {
 		                    matches = path.match(matchRoot);
 		                    if (matches) {
 		                        path = path.substr(matches[0].length);
-		                        context = this['$root'];
+		                        context = this['$rootContext'].target();
 		                        return this._bindTargetPath(path, callback, context);
 		                    } else {
 		                        var parent_index = 0;
@@ -1665,8 +1866,29 @@
 		                            path = path.substr(matches[0].length);
 		                            matches = path.match(matchLeadingParent);
 		                        }
-		                        if (parent_index - 1 >= 0) {
-		                            context = this['$parents'][parent_index - 1];
+		                        if (parent_index > 0) {
+		                            var i, currContext = this;
+		                            for (i = 0; i < parent_index; i++) {
+		                                currContext = currContext['$parentContext'];
+		                                if (!currContext)
+		                                    throw new Error('Cannot bind path. $parent was null or undefined');
+		                            }
+		                            context = currContext.target();
+		                            return this._bindTargetPath(path, callback, context);
+		                        }
+		                        matches = path.match(matchLabel);
+		                        if (matches) {
+		                            var node = this;
+		                            while (node) {
+		                                if (_.isArray(node['$symbols']) && _.contains(node['$symbols'], matches[1])) {
+		                                    break;
+		                                }
+		                                node = node['$parentContext'];
+		                            }
+		                            if (!node)
+		                                throw new Error('Could not find the label "' + matches[1] + '"');
+		                            path = path.substr(matches[0].length);
+		                            context = node.target();
 		                            return this._bindTargetPath(path, callback, context);
 		                        }
 		                    }
@@ -1740,6 +1962,139 @@
 		};
 		
 		module.exports = nullSafe;
+	});
+
+	uncommon.define('lib/context/options/CaptionContext.js', function(require, module) {
+		var _ = require('underscore'), RenderContext = require('lib/context/RenderContext.js'), dom = require('lib/util/dom.js');
+		var CaptionContext = RenderContext.extend({
+		        init: function (options) {
+		            this._super(options);
+		            _.defaults(options, {
+		                bind_name: 'caption-bind',
+		                bind_id: _.uniqueId('hb')
+		            });
+		            this._bind_name = options.bind_name;
+		            this._bind_id = options.bind_id;
+		        },
+		        render: function () {
+		            var target = this.target(), value = _.isFunction(target) ? target() : target, ret = '';
+		            ret += '<option value="-1"';
+		            if (this.bind())
+		                ret += this._bind_name + '="' + this._bind_id + '"';
+		            ret += '>' + value + '</option>';
+		            return ret;
+		        },
+		        rerender: function () {
+		            var target = this.target(), value = _.isFunction(target) ? target() : target;
+		            dom.boundElement(this).text(value);
+		        }
+		    });
+		module.exports = CaptionContext;
+	});
+
+	uncommon.define('lib/context/options/OptionListContext.js', function(require, module) {
+		var _ = require('underscore'), MetamorphContext = require('lib/context/MetamorphContext.js'), TextContext = require('lib/context/TextContext.js'), UpdatingContext = require('lib/context/UpdatingContext.js'), nullSafe = require('lib/util/nullSafe.js');
+		var OptionListContext = MetamorphContext.extend({
+		        init: function (options) {
+		            this._super(options);
+		            _.defaults(options, {
+		                text: function (item) {
+		                    return nullSafe.toString(item);
+		                }
+		            });
+		            var text = _.isSubscribable(text) ? options.text() : options.text;
+		            if (_.isString(text) || _.isNumber(text)) {
+		                var propertyName = text;
+		                this._text = function (item) {
+		                    return item[propertyName];
+		                };
+		            } else if (_.isFunction(text)) {
+		                this._text = text;
+		            } else
+		                throw new Error('"text" must be either a string or a function');
+		        },
+		        renderContent: function (options) {
+		            var optionContext, ret = '';
+		            if (options && options.length > 0) {
+		                for (var i = 0, len = options.length; i < len; i++) {
+		                    optionContext = new TextContext({
+		                        target: this._text(options[i]),
+		                        parent: this
+		                    });
+		                    ret += '<option value="' + i + '" >' + optionContext.render() + '</option>';
+		                }
+		            }
+		            return ret;
+		        }
+		    });
+		module.exports = OptionListContext;
+	});
+
+	uncommon.define('lib/context/options/SelectedOptionsContext.js', function(require, module) {
+		var _ = require('underscore'), $ = require('jquery'), UpdatingContext = require('lib/context/UpdatingContext.js'), dom = require('lib/util/dom.js');
+		var SelectedOptionsContext = UpdatingContext.extend({
+		        init: function (options) {
+		            options.bind_name = 'selected-bind';
+		            options.bind_id = _.uniqueId('hb');
+		            options.update = 'change';
+		            this._super(options);
+		            if (!options.model)
+		                throw new Exception('Cannot bind selected values without a <select> model');
+		            this._model = options.model;
+		        },
+		        render: function () {
+		            var target = this.target(), value = _.isFunction(target) ? target() : target, name = this._bind_name, id = this._bind_id;
+		            this._registerEvents(target);
+		            if (_.isFunction(this.$rootContext.doPostRender)) {
+		                this.$rootContext.doPostRender(function select_PostRender() {
+		                    $('script#' + id).parent('select').attr(name, id);
+		                    this._is_updating = true;
+		                    var model = _.isFunction(this._model) ? this._model() : this._model, illegalOptions = _.difference(value, model);
+		                    value = _.without(value, illegalOptions);
+		                    this.pushValue(value);
+		                    if (_.isSubscribable(target))
+		                        _.isObservableArray(target) ? target.removeAll(illegalOptions) : target(value);
+		                    this._is_updating = false;
+		                }, this);
+		            }
+		            return '<script id="' + id + '" type="text/x-placeholder"></script>';
+		        },
+		        pushValue: function (value) {
+		            var selected, model = _.isSubscribable(this._model) ? this._model() : this._model, element = dom.boundElement(this), isMultiple = element.prop('multiple'), optionElements = element.children('option');
+		            if (_.isUndefined(value) || _.isNull(value))
+		                selected = [];
+		            else if (_.isArray(value))
+		                selected = value;
+		            else
+		                selected = [
+		                    value
+		                ];
+		            selected = _.reduce(selected, function (memo, next) {
+		                var i = _.indexOf(model, next);
+		                if (i > -1)
+		                    memo.push(i);
+		                return memo;
+		            }, []);
+		            optionElements.each(function () {
+		                var option = $(this);
+		                option.prop('selected', _.contains(selected, +option.val()));
+		            });
+		            if (selected.length == 0)
+		                optionElements.filter('[value="-1"]').prop('selected', true);
+		        },
+		        pullValue: function () {
+		            var element = dom.boundElement(this), isMultiple = element.prop('multiple'), selectedOptions = element.children('option:selected'), model = _.isSubscribable(this._model) ? this._model() : this.model, index, value = [];
+		            selectedOptions.each(function () {
+		                index = $(this).val();
+		                if (index >= 0)
+		                    value.push(model[index]);
+		            });
+		            if (!isMultiple)
+		                value = value.length > 0 ? value[0] : undefined;
+		            return value;
+		        }
+		    });
+		module.exports = SelectedOptionsContext;
 	});
 
 	uncommon.define('lib/util/arrays.js', function(require, module) {
