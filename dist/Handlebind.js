@@ -52,6 +52,8 @@
 		require('lib/bind/helpers/props.js');
 		require('lib/bind/helpers/action.js');
 		var Handlebind = {
+		        value: require('lib/observe/value.js'),
+		        valueArray: require('lib/observe/valueArray.js'),
 		        observable: require('lib/observe/observable.js'),
 		        observableArray: require('lib/observe/observableArray.js'),
 		        computed: require('lib/observe/computed.js'),
@@ -426,6 +428,63 @@
 		    ret += '</a>';
 		    return new Handlebars.SafeString(ret);
 		});
+	});
+
+	uncommon.define('lib/observe/value.js', function(require, module) {
+		function value(initValue) {
+			var val = initValue || null;
+					
+			return function() {
+				if(arguments.length === 0)
+					return val;
+				else
+					val = arguments[0]; //TODO should this return?
+			}
+		}
+		
+		module.exports = value;
+	});
+
+	uncommon.define('lib/observe/valueArray.js', function(require, module) {
+		var _ = require('underscore');
+		function valueArray(initValue) {
+		    var array = _.isArray(initValue) ? initvalue : [];
+		    var valueArray = function () {
+		        if (arguments.length === 0)
+		            return array;
+		        else {
+		            var arg = arguments[0];
+		            if (_.isArray(arg))
+		                array = arg;
+		            else
+		                throw 'Cannot assign ' + typeof arg + ' with an ArrayAcessor';
+		        }
+		    };
+		    valueArray.length = array.length;
+		    valueArray.pop = function () {
+		        var retVal = array.pop();
+		        valueArray.length = array.length;
+		        return retVal;
+		    };
+		    valueArray.push = function (item) {
+		        array.push(item);
+		        valueArray.length = array.length;
+		    };
+		    valueArray.reverse = function () {
+		        array.reverse();
+		        return valueArray;
+		    };
+		    valueArray.shift = function () {
+		        var retVal = array.shift();
+		        valueArray.length = array.length;
+		        return retVal;
+		    };
+		    valueArray.sort = function (comparator) {
+		        array.sort(comparator);
+		    };
+		    return valueArray;
+		}
+		module.exports = valueArray;
 	});
 
 	uncommon.define('lib/observe/observable.js', function(require, module) {

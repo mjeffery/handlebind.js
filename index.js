@@ -19,6 +19,8 @@ require('./lib/bind/helpers/props');
 require('./lib/bind/helpers/action');
 
 var Handlebind = {
+	value: require('./lib/observe/value'),
+	valueArray: require('./lib/observe/valueArray'),
 	observable: require('./lib/observe/observable'),
 	observableArray: require('./lib/observe/observableArray'),
 	computed: require('./lib/observe/computed'),
