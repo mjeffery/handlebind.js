@@ -237,16 +237,23 @@
 	});
 
 	uncommon.define('lib/bind/helpers/attrs.js', function(require, module) {
-		var _ = require('underscore'), Handlebars = require('handlebars'), AttributesContext = require('lib/context/AttributeContext.js'), context = require('lib/bind/context.js');
-		Handlebars.registerHelper('attrs', function (target, options) {
-		    var ret, attributesContext = new AttributesContext({
-		            target: target === undefined ? options.hash || {} : target,
-		            parent: context
+		var _ = require('underscore'), Handlebars = require('handlebars'), AttributeContext = require('lib/context/AttributeContext.js'), context = require('lib/bind/context.js');
+		Handlebars.registerHelper('attrs', function (options) {
+		    var attr, attrContext, parent = context(), id = _.uniqueId('hb'), ret = ' attr-bind="' + id + '" ';
+		    for (attr in options.hash) {
+		        attrContext = new AttributeContext({
+		            target: options.hash[attr],
+		            parent: parent,
+		            name: attr,
+		            bind_name: 'attr-bind',
+		            bind_id: id,
+		            sharing_bind: true
 		        });
-		    context(attributesContext);
-		    ret = attributesContext.render();
-		    context.pop();
-		    return ret;
+		        context(attrContext);
+		        ret += attrContext.render();
+		        context.pop();
+		    }
+		    return new Handlebars.SafeString(ret);
 		});
 	});
 
@@ -524,8 +531,14 @@
 		        var oldValueIsPrimitive = a === null || typeof a in primitiveTypes;
 		        return oldValueIsPrimitive ? a === b : false;
 		    };
+		    observable.__is_observable__ = true;
 		    return observable;
 		};
+		_.mixin({
+		    'isObservable': function (value) {
+		        return _.isSubscribable(value) && value.__is_observable__ === true;
+		    }
+		});
 		module.exports = observable;
 	});
 
@@ -746,121 +759,16 @@
 	});
 
 	uncommon.define('lib/bind/View.js', function(require, module) {
-		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars'), humble = require('humble'), TemplateContext = require('lib/context/TemplateContext.js'), context = require('lib/bind/context.js');
-		var ViewContext = TemplateContext.extend({
-		        init: function (options) {
-		            this._super(options);
-		            this._events = {};
-		            this._handledEvents = [];
-		            this._isAttached = false;
-		            this._postRenderCallbacks = [];
-		        },
-		        clean: function () {
-		            this._super();
-		            this._updateFocus();
-		            this._postRender();
-		        },
-		        registerEvent: function (id, event, callback, data) {
-		            var callbacksById = this._events[event];
-		            if (callbacksById === undefined)
-		                this._events[event] = callbacksById = {};
-		            callbacksById[id] = {
-		                callback: callback,
-		                data: data
-		            };
-		            if (this._isAttached)
-		                this._updateEvents();
-		        },
-		        disposeEvent: function (id, event) {
-		            var callbacksById = this._events[event];
-		            if (callbacksById !== undefined && callbacksById.hasOwnProperty(id))
-		                delete callbacksById[id];
-		            if (this._isAttached)
-		                this._updateEvents();
-		        },
-		        setFocus: function (elementOrSelector) {
-		            this._toFocus = elementOrSelector;
-		        },
-		        doPostRender: function (callback, context) {
-		            if (_.isFunction(callback)) {
-		                this._postRenderCallbacks.push({
-		                    callback: callback,
-		                    context: context
-		                });
-		            }
-		        },
-		        _getEventBindings: function (element) {
-		            var attrs = [
-		                    'event-bind',
-		                    'update-bind',
-		                    'value-bind',
-		                    'focus-bind',
-		                    'selected-bind'
-		                ], ids = [], id, i, len = attrs.length;
-		            for (i = 0; i < len; i++) {
-		                id = element.attr(attrs[i]);
-		                if (_.isString(id))
-		                    ids.push(id);
-		            }
-		            return ids;
-		        },
-		        _updateFocus: function () {
-		            if (this._toFocus) {
-		                var activeElement = $(document.activeElement), element = $(this._toFocus).get(0), isFocused = activeElement.is(element);
-		                if (!isFocused)
-		                    element.focus();
-		                this._toFocus = null;
-		            }
-		        },
-		        _postRender: function () {
-		            var callbacks = this._postRenderCallbacks.splice(0, this._postRenderCallbacks.length);
-		            _.each(callbacks, function (postRender) {
-		                postRender.callback.call(postRender.context);
-		            });
-		        }
-		    });
+		var $ = require('jquery'), humble = require('humble'), ViewContext = require('lib/context/ViewContext.js');
+		context = require('lib/bind/context.js');
 		var View = humble.Object.extend({
 		        init: function (template, modelview) {
 		            this._template = template;
 		            this._modelview = modelview;
 		        },
 		        appendTo: function (elementOrSelector) {
-		            var rootElement = $(elementOrSelector), rootContext = ViewContext.extend({
-		                    _eventHandler: function (event) {
-		                        var callbacksById, element, ids, i, len, info, ret;
-		                        callbacksById = rootContext._events[event.type];
-		                        if (callbacksById === undefined)
-		                            return;
-		                        element = $(event.target);
-		                        while (!element.is(rootElement)) {
-		                            ids = rootContext._getEventBindings(element);
-		                            for (i = 0, len = ids.length; i < len; i++) {
-		                                info = callbacksById[ids[i]];
-		                                ret = undefined;
-		                                if (info && _.isFunction(info.callback)) {
-		                                    ret = info.callback(event, info.data);
-		                                }
-		                            }
-		                            if (ret === false)
-		                                return false;
-		                            else if (event.isPropagationStopped())
-		                                return;
-		                            else {
-		                                element = element.parent();
-		                                if (element.length == 0)
-		                                    return;
-		                            }
-		                        }
-		                    },
-		                    _updateEvents: function () {
-		                        var oldEvents = this._handledEvents, newEvents = _.keys(this._events), toAdd = _.difference(newEvents, oldEvents), toRemove = _.difference(oldEvents, newEvents);
-		                        if (toRemove.length > 0)
-		                            rootElement.off(toRemove.join(' '));
-		                        if (toAdd.length > 0)
-		                            rootElement.on(toAdd.join(' '), this._eventHandler);
-		                        this._handledEvents = newEvents;
-		                    }
-		                }).invoke({
+		            var rootElement = $(elementOrSelector), rootContext = new ViewContext({
+		                    element: rootElement,
 		                    target: this._modelview,
 		                    template: this._template,
 		                    context: this._modelview
@@ -873,6 +781,30 @@
 		            rootContext._updateFocus();
 		            rootContext._postRender();
 		            this._context = rootContext;
+		        },
+		        replaceIn: function (elementOrSelector) {
+		            var rootElement = $(elementOrSelector), rootContext = new ViewContext({
+		                    element: rootElement,
+		                    target: this._modelview,
+		                    template: this._template,
+		                    context: this._modelview
+		                });
+		            context(rootContext);
+		            rootElement.html(rootContext.render());
+		            context.pop();
+		            rootContext._isAttached = true;
+		            rootContext._updateEvents();
+		            rootContext._updateFocus();
+		            rootContext._postRender();
+		            this._context = rootContext;
+		        },
+		        remove: function () {
+		            var context = this._context;
+		            if (context) {
+		                context.dispose();
+		                context._isAttached = false;
+		            }
+		            this._context = null;
 		        }
 		    });
 		module.exports = View;
@@ -1029,6 +961,10 @@
 		                if (disposalCandidates[i])
 		                    this._subscriptions.splice(i, 1)[0].dispose();
 		            }
+		            if (_.isObservable(value.template))
+		                value.template = value.template();
+		            if (_.isSubscribable(value.context))
+		                value.context = value.context();
 		            return value;
 		        },
 		        renderContent: function (desc) {
@@ -1057,15 +993,21 @@
 		            _.defaults(options, {
 		                bind_name: 'attr-bind',
 		                bind_id: _.uniqueId('hb'),
-		                name: 'undefined_attribute'
+		                name: _.uniqueId('undefined_attr'),
+		                sharing_bind: false
 		            });
+		            this._sharing_bind = options.sharing_bind;
 		            this._bind_name = options.bind_name;
 		            this._bind_id = options.bind_id;
 		            this._name = options.name;
 		        },
 		        render: function () {
-		            var value = this._getAttributeValue();
-		            return value !== null && value !== undefined ? this._name + '="' + value + '"' : '';
+		            var value = this._getAttributeValue(), ret = ' ';
+		            if (!this._sharing_bind)
+		                ret += this._bind_name + '="' + this._bind_id + '" ';
+		            if (value !== null && value !== undefined)
+		                ret += this._name + '="' + value + '"';
+		            return ret;
 		        },
 		        rerender: function () {
 		            if (this.bound()) {
@@ -1399,6 +1341,131 @@
 		        }
 		    };
 		module.exports = dependencyDetection;
+	});
+
+	uncommon.define('lib/context/ViewContext.js', function(require, module) {
+		var _ = require('underscore'), $ = require('jquery'), humble = require('humble'), TemplateContext = require('lib/context/TemplateContext.js');
+		var EVENT_ATTRS = [
+		        'event-bind',
+		        'update-bind',
+		        'value-bind',
+		        'focus-bind',
+		        'selected-bind'
+		    ];
+		function getEventBindings(element) {
+		    var attrs = EVENT_ATTRS, ids = [], id, i, len = attrs.length;
+		    for (i = 0; i < len; i++) {
+		        id = element.attr(attrs[i]);
+		        if (_.isString(id))
+		            ids.push(id);
+		    }
+		    return ids;
+		}
+		function createEventHandler(context) {
+		    var eventHandler = function (event) {
+		        var callbacksById, element, ids, i, len, info, ret;
+		        callbacksById = context._events[event.type];
+		        if (callbacksById === undefined)
+		            return;
+		        element = $(event.target);
+		        while (!element.is(context._element)) {
+		            ids = getEventBindings(element);
+		            for (i = 0, len = ids.length; i < len; i++) {
+		                info = callbacksById[ids[i]];
+		                ret = undefined;
+		                if (info && _.isFunction(info.callback)) {
+		                    ret = info.callback(event, info.data);
+		                }
+		            }
+		            if (ret === false)
+		                return false;
+		            else if (event.isPropagationStopped())
+		                return;
+		            else {
+		                element = element.parent();
+		                if (element.length == 0)
+		                    return;
+		            }
+		        }
+		    };
+		    return eventHandler;
+		}
+		var ViewContext = TemplateContext.extend({
+		        init: function (options) {
+		            this._super(options);
+		            this._element = options.element;
+		            this._events = {};
+		            this._handledEvents = [];
+		            this._isAttached = false;
+		            this._postRenderCallbacks = [];
+		            this._eventHandler = createEventHandler(this);
+		        },
+		        clean: function () {
+		            this._super();
+		            this._updateFocus();
+		            this._postRender();
+		        },
+		        dispose: function () {
+		            this._events = {};
+		            this._updateEvents();
+		            var metamorph = this._metamorph;
+		            if (metamorph && !metamorph.isRemoved())
+		                metamorph.remove();
+		            this._super();
+		        },
+		        registerEvent: function (id, event, callback, data) {
+		            var callbacksById = this._events[event];
+		            if (callbacksById === undefined)
+		                this._events[event] = callbacksById = {};
+		            callbacksById[id] = {
+		                callback: callback,
+		                data: data
+		            };
+		            if (this._isAttached)
+		                this._updateEvents();
+		        },
+		        disposeEvent: function (id, event) {
+		            var callbacksById = this._events[event];
+		            if (callbacksById !== undefined && callbacksById.hasOwnProperty(id))
+		                delete callbacksById[id];
+		            if (this._isAttached)
+		                this._updateEvents();
+		        },
+		        setFocus: function (elementOrSelector) {
+		            this._toFocus = elementOrSelector;
+		        },
+		        doPostRender: function (callback, context) {
+		            if (_.isFunction(callback)) {
+		                this._postRenderCallbacks.push({
+		                    callback: callback,
+		                    context: context
+		                });
+		            }
+		        },
+		        _updateFocus: function () {
+		            if (this._toFocus) {
+		                var activeElement = $(document.activeElement), element = $(this._toFocus).get(0), isFocused = activeElement.is(element);
+		                if (!isFocused)
+		                    element.focus();
+		                this._toFocus = null;
+		            }
+		        },
+		        _updateEvents: function () {
+		            var oldEvents = this._handledEvents, newEvents = _.keys(this._events), toAdd = _.difference(newEvents, oldEvents), toRemove = _.difference(oldEvents, newEvents);
+		            if (toRemove.length > 0)
+		                this._element.off(toRemove.join(' '));
+		            if (toAdd.length > 0)
+		                this._element.on(toAdd.join(' '), this._eventHandler);
+		            this._handledEvents = newEvents;
+		        },
+		        _postRender: function () {
+		            var callbacks = this._postRenderCallbacks.splice(0, this._postRenderCallbacks.length);
+		            _.each(callbacks, function (postRender) {
+		                postRender.callback.call(postRender.context);
+		            });
+		        }
+		    });
+		module.exports = ViewContext;
 	});
 
 	uncommon.define('lib/util/metamorph.js', function(require, module) {
@@ -2106,10 +2173,14 @@
 		            this._registerEvents(target);
 		            if (_.isFunction(this.$rootContext.doPostRender)) {
 		                this.$rootContext.doPostRender(function select_PostRender() {
-		                    $('script#' + id).parent('select').attr(name, id);
+		                    var element = $('script#' + id).parent('select'), isMultiple = element.prop('multiple'), model = _.isFunction(this._model) ? this._model() : this._model, illegalOptions = [];
 		                    this._is_updating = true;
-		                    var model = _.isFunction(this._model) ? this._model() : this._model, illegalOptions = _.difference(value, model);
-		                    value = _.without(value, illegalOptions);
+		                    element.attr(name, id);
+		                    if (isMultiple) {
+		                        illegalOptions = _.difference(value, model);
+		                        value = _.without(value, illegalOptions);
+		                    } else if (!_.contains(model, value))
+		                        value = null;
 		                    this.pushValue(value);
 		                    if (_.isSubscribable(target))
 		                        _.isObservableArray(target) ? target.removeAll(illegalOptions) : target(value);
@@ -2142,7 +2213,7 @@
 		                optionElements.filter('[value="-1"]').prop('selected', true);
 		        },
 		        pullValue: function () {
-		            var element = dom.boundElement(this), isMultiple = element.prop('multiple'), selectedOptions = element.children('option:selected'), model = _.isSubscribable(this._model) ? this._model() : this.model, index, value = [];
+		            var element = dom.boundElement(this), isMultiple = element.prop('multiple'), selectedOptions = element.children('option:selected'), model = _.isSubscribable(this._model) ? this._model() : this._model, index, value = [];
 		            selectedOptions.each(function () {
 		                index = $(this).val();
 		                if (index >= 0)
