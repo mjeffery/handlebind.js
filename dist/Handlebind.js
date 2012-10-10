@@ -41,16 +41,19 @@
 		require('lib/bind/helpers/unbound.js');
 		require('lib/bind/helpers/events.js');
 		require('lib/bind/helpers/template.js');
+		require('lib/bind/helpers/attrs.js');
 		require('lib/bind/helpers/class.js');
 		require('lib/bind/helpers/value.js');
 		require('lib/bind/helpers/enabled.js');
 		require('lib/bind/helpers/disabled.js');
 		require('lib/bind/helpers/checked.js');
-		require('lib/bind/helpers/hasFocus.js');
+		require('lib/bind/helpers/focused.js');
 		require('lib/bind/helpers/options.js');
 		require('lib/bind/helpers/props.js');
 		require('lib/bind/helpers/action.js');
 		var Handlebind = {
+		        value: require('lib/observe/value.js'),
+		        valueArray: require('lib/observe/valueArray.js'),
 		        observable: require('lib/observe/observable.js'),
 		        observableArray: require('lib/observe/observableArray.js'),
 		        computed: require('lib/observe/computed.js'),
@@ -63,12 +66,14 @@
 		var Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js'), context = require('lib/bind/context.js');
 		Handlebars.helpers['_nobind_with'] = Handlebars.helpers['with'];
 		Handlebars.registerHelper('with', function (target, options) {
-		    var ret, withContext = MetamorphContext.extend({renderContent: function (value) {
+		    var ret, withContext = MetamorphContext.extend({
+		            renderContent: function (value) {
 		                if (value)
 		                    return options.fn(value);
 		                else
 		                    return options.inverse(value);
-		            }}).invoke({
+		            }
+		        }).invoke({
 		            target: target,
 		            parent: context(),
 		            bind: !(options.hash['unbound'] === true),
@@ -85,14 +90,16 @@
 		var _ = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js'), context = require('lib/bind/context.js');
 		Handlebars.helpers['_nobind_if'] = Handlebars.helpers['if'];
 		Handlebars.registerHelper('if', function (target, options) {
-		    var ret = '', self = this, ifContext = MetamorphContext.extend({renderContent: function (value) {
+		    var ret = '', self = this, ifContext = MetamorphContext.extend({
+		            renderContent: function (value) {
 		                var result = '';
 		                if (!value || Handlebars.Utils.isEmpty(value))
 		                    result = options.inverse(self);
 		                else
 		                    result = options.fn(self);
 		                return new Handlebars.SafeString(result);
-		            }}).invoke({
+		            }
+		        }).invoke({
 		            target: target,
 		            parent: context(),
 		            bind: !(options.hash['unbound'] === true)
@@ -108,9 +115,12 @@
 		var Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js'), context = require('lib/bind/context.js');
 		Handlebars.helpers['_nobind_each'] = Handlebars.helpers['each'];
 		Handlebars.registerHelper('each', function (target, options) {
-		    var self = this, fn = options.fn, inverse = options.inverse, ItemContext = MetamorphContext.extend({renderContent: function (item) {
+		    var self = this, fn = options.fn, inverse = options.inverse, ItemContext = MetamorphContext.extend({
+		            renderContent: function (item) {
 		                return new Handlebars.SafeString(fn(item));
-		            }}), eachContext = MetamorphContext.extend({renderContent: function (items) {
+		            }
+		        }), eachContext = MetamorphContext.extend({
+		            renderContent: function (items) {
 		                var itemContext, ret = '';
 		                if (items && items.length > 0) {
 		                    for (var i = 0, j = items.length; i < j; i++) {
@@ -127,7 +137,8 @@
 		                } else
 		                    ret = inverse(self);
 		                return new Handlebars.SafeString(ret);
-		            }}).invoke({
+		            }
+		        }).invoke({
 		            target: target,
 		            parent: context(),
 		            bind: !(options.hash['unbound'] === true),
@@ -174,9 +185,11 @@
 	uncommon.define('lib/bind/helpers/unbound.js', function(require, module) {
 		var Handlebars = require('handlebars'), RenderContext = require('lib/context/RenderContext.js'), context = require('lib/bind/context.js');
 		Handlebars.registerHelper('unbound', function (options) {
-		    var unboundContext = RenderContext.extend({render: function () {
+		    var unboundContext = RenderContext.extend({
+		            render: function () {
 		                return options.fn(this);
-		            }}).invoke({
+		            }
+		        }).invoke({
 		            target: null,
 		            bind: false,
 		            parent: context()
@@ -219,6 +232,27 @@
 		    context(templateContext);
 		    ret = templateContext.render();
 		    context.pop();
+		    return new Handlebars.SafeString(ret);
+		});
+	});
+
+	uncommon.define('lib/bind/helpers/attrs.js', function(require, module) {
+		var _ = require('underscore'), Handlebars = require('handlebars'), AttributeContext = require('lib/context/AttributeContext.js'), context = require('lib/bind/context.js');
+		Handlebars.registerHelper('attrs', function (options) {
+		    var attr, attrContext, parent = context(), id = _.uniqueId('hb'), ret = ' attr-bind="' + id + '" ';
+		    for (attr in options.hash) {
+		        attrContext = new AttributeContext({
+		            target: options.hash[attr],
+		            parent: parent,
+		            name: attr,
+		            bind_name: 'attr-bind',
+		            bind_id: id,
+		            sharing_bind: true
+		        });
+		        context(attrContext);
+		        ret += attrContext.render();
+		        context.pop();
+		    }
 		    return new Handlebars.SafeString(ret);
 		});
 	});
@@ -270,10 +304,12 @@
 
 	uncommon.define('lib/bind/helpers/enabled.js', function(require, module) {
 		var Handlebars = require('handlebars'), PropertyContext = require('lib/context/PropertyContext.js'), context = require('lib/bind/context.js');
-		var AntiPropertyContext = PropertyContext.extend({target: function () {
+		var AntiPropertyContext = PropertyContext.extend({
+		        target: function () {
 		            var target = this._super(), value = _.isFunction(target) ? target() : target;
 		            return !value;
-		        }});
+		        }
+		    });
 		Handlebars.registerHelper('enabled', function (target, options) {
 		    var ret, EnabledContext = new AntiPropertyContext({
 		            target: target,
@@ -308,10 +344,10 @@
 		var Handlebars = require('handlebars'), dom = require('lib/util/dom.js'), UpdatingContext = require('lib/context/UpdatingContext.js'), context = require('lib/bind/context.js');
 		var CheckedContext = UpdatingContext.extend({
 		        renderValue: function (value) {
-		            return !!value ? ' checked ' : ' ';
+		            return !(!value) ? ' checked ' : ' ';
 		        },
 		        pushValue: function (value) {
-		            dom.boundElement(this).prop('checked', !!value);
+		            dom.boundElement(this).prop('checked', !(!value));
 		        },
 		        pullValue: function () {
 		            return dom.boundElement(this).prop('checked');
@@ -330,9 +366,9 @@
 		});
 	});
 
-	uncommon.define('lib/bind/helpers/hasFocus.js', function(require, module) {
+	uncommon.define('lib/bind/helpers/focused.js', function(require, module) {
 		var Handlebars = require('handlebars'), FocusContext = require('lib/context/FocusContext.js'), context = require('lib/bind/context.js');
-		Handlebars.registerHelper('hasFocus', function (target, options) {
+		Handlebars.registerHelper('focused', function (target, options) {
 		    var ret, focusContext = new FocusContext({
 		            target: target,
 		            parent: context()
@@ -387,12 +423,75 @@
 		var Handlebars = require('handlebars');
 		Handlebars.registerHelper('action', function (target, options) {
 		    var ret = '<a href="javascript:void(0)" ', label = options.hash['label'];
-		    ret += Handlebars.helpers['events'].call(this, {hash: {click: target}});
+		    ret += Handlebars.helpers['events'].call(this, {
+		        hash: {
+		            click: target
+		        }
+		    });
 		    ret += '>';
-		    ret += Handlebars.helpers['text'].call(this, label, {hash: {}});
+		    ret += Handlebars.helpers['text'].call(this, label, {
+		        hash: {}
+		    });
 		    ret += '</a>';
 		    return new Handlebars.SafeString(ret);
 		});
+	});
+
+	uncommon.define('lib/observe/value.js', function(require, module) {
+		function value(initValue) {
+			var val = initValue || null;
+					
+			return function() {
+				if(arguments.length === 0)
+					return val;
+				else
+					val = arguments[0]; //TODO should this return?
+			}
+		}
+		
+		module.exports = value;
+	});
+
+	uncommon.define('lib/observe/valueArray.js', function(require, module) {
+		var _ = require('underscore');
+		function valueArray(initValue) {
+		    var array = _.isArray(initValue) ? initvalue : [];
+		    var valueArray = function () {
+		        if (arguments.length === 0)
+		            return array;
+		        else {
+		            var arg = arguments[0];
+		            if (_.isArray(arg))
+		                array = arg;
+		            else
+		                throw 'Cannot assign ' + typeof arg + ' with an ArrayAcessor';
+		        }
+		    };
+		    valueArray.length = array.length;
+		    valueArray.pop = function () {
+		        var retVal = array.pop();
+		        valueArray.length = array.length;
+		        return retVal;
+		    };
+		    valueArray.push = function (item) {
+		        array.push(item);
+		        valueArray.length = array.length;
+		    };
+		    valueArray.reverse = function () {
+		        array.reverse();
+		        return valueArray;
+		    };
+		    valueArray.shift = function () {
+		        var retVal = array.shift();
+		        valueArray.length = array.length;
+		        return retVal;
+		    };
+		    valueArray.sort = function (comparator) {
+		        array.sort(comparator);
+		    };
+		    return valueArray;
+		}
+		module.exports = valueArray;
 	});
 
 	uncommon.define('lib/observe/observable.js', function(require, module) {
@@ -432,16 +531,24 @@
 		        var oldValueIsPrimitive = a === null || typeof a in primitiveTypes;
 		        return oldValueIsPrimitive ? a === b : false;
 		    };
+		    observable.__is_observable__ = true;
 		    return observable;
 		};
+		_.mixin({
+		    'isObservable': function (value) {
+		        return _.isSubscribable(value) && value.__is_observable__ === true;
+		    }
+		});
 		module.exports = observable;
 	});
 
 	uncommon.define('lib/observe/observableArray.js', function(require, module) {
 		var _ = require('underscore'), observable = require('lib/observe/observable.js'), dependencyDetection = require('lib/observe/dependencyDetection.js');
-		_.mixin({'isObservableArray': function (instance) {
+		_.mixin({
+		    'isObservableArray': function (instance) {
 		        return _.isSubscribable(instance) && instance.__observableArray === true;
-		    }});
+		    }
+		});
 		var observableArray = function (initialValue) {
 		    if (arguments.length == 0) {
 		        initialValue = [];
@@ -652,121 +759,16 @@
 	});
 
 	uncommon.define('lib/bind/View.js', function(require, module) {
-		var _ = require('underscore'), $ = require('jquery'), Handlebars = require('handlebars'), humble = require('humble'), TemplateContext = require('lib/context/TemplateContext.js'), context = require('lib/bind/context.js');
-		var ViewContext = TemplateContext.extend({
-		        init: function (options) {
-		            this._super(options);
-		            this._events = {};
-		            this._handledEvents = [];
-		            this._isAttached = false;
-		            this._postRenderCallbacks = [];
-		        },
-		        clean: function () {
-		            this._super();
-		            this._updateFocus();
-		            this._postRender();
-		        },
-		        registerEvent: function (id, event, callback, data) {
-		            var callbacksById = this._events[event];
-		            if (callbacksById === undefined)
-		                this._events[event] = callbacksById = {};
-		            callbacksById[id] = {
-		                callback: callback,
-		                data: data
-		            };
-		            if (this._isAttached)
-		                this._updateEvents();
-		        },
-		        disposeEvent: function (id, event) {
-		            var callbacksById = this._events[event];
-		            if (callbacksById !== undefined && callbacksById.hasOwnProperty(id))
-		                delete callbacksById[id];
-		            if (this._isAttached)
-		                this._updateEvents();
-		        },
-		        setFocus: function (elementOrSelector) {
-		            this._toFocus = elementOrSelector;
-		        },
-		        doPostRender: function (callback, context) {
-		            if (_.isFunction(callback)) {
-		                this._postRenderCallbacks.push({
-		                    callback: callback,
-		                    context: context
-		                });
-		            }
-		        },
-		        _getEventBindings: function (element) {
-		            var attrs = [
-		                    'event-bind',
-		                    'update-bind',
-		                    'value-bind',
-		                    'focus-bind',
-		                    'selected-bind'
-		                ], ids = [], id, i, len = attrs.length;
-		            for (i = 0; i < len; i++) {
-		                id = element.attr(attrs[i]);
-		                if (_.isString(id))
-		                    ids.push(id);
-		            }
-		            return ids;
-		        },
-		        _updateFocus: function () {
-		            if (this._toFocus) {
-		                var activeElement = $(document.activeElement), element = $(this._toFocus).get(0), isFocused = activeElement.is(element);
-		                if (!isFocused)
-		                    element.focus();
-		                this._toFocus = null;
-		            }
-		        },
-		        _postRender: function () {
-		            var callbacks = this._postRenderCallbacks.splice(0, this._postRenderCallbacks.length);
-		            _.each(callbacks, function (postRender) {
-		                postRender.callback.call(postRender.context);
-		            });
-		        }
-		    });
+		var $ = require('jquery'), humble = require('humble'), ViewContext = require('lib/context/ViewContext.js');
+		context = require('lib/bind/context.js');
 		var View = humble.Object.extend({
 		        init: function (template, modelview) {
 		            this._template = template;
 		            this._modelview = modelview;
 		        },
 		        appendTo: function (elementOrSelector) {
-		            var rootElement = $(elementOrSelector), rootContext = ViewContext.extend({
-		                    _eventHandler: function (event) {
-		                        var callbacksById, element, ids, i, len, info, ret;
-		                        callbacksById = rootContext._events[event.type];
-		                        if (callbacksById === undefined)
-		                            return;
-		                        element = $(event.target);
-		                        while (!element.is(rootElement)) {
-		                            ids = rootContext._getEventBindings(element);
-		                            for (i = 0, len = ids.length; i < len; i++) {
-		                                info = callbacksById[ids[i]];
-		                                ret = undefined;
-		                                if (info && _.isFunction(info.callback)) {
-		                                    ret = info.callback(event, info.data);
-		                                }
-		                            }
-		                            if (ret === false)
-		                                return false;
-		                            else if (event.isPropagationStopped())
-		                                return;
-		                            else {
-		                                element = element.parent();
-		                                if (element.length == 0)
-		                                    return;
-		                            }
-		                        }
-		                    },
-		                    _updateEvents: function () {
-		                        var oldEvents = this._handledEvents, newEvents = _.keys(this._events), toAdd = _.difference(newEvents, oldEvents), toRemove = _.difference(oldEvents, newEvents);
-		                        if (toRemove.length > 0)
-		                            rootElement.off(toRemove.join(' '));
-		                        if (toAdd.length > 0)
-		                            rootElement.on(toAdd.join(' '), this._eventHandler);
-		                        this._handledEvents = newEvents;
-		                    }
-		                }).invoke({
+		            var rootElement = $(elementOrSelector), rootContext = new ViewContext({
+		                    element: rootElement,
 		                    target: this._modelview,
 		                    template: this._template,
 		                    context: this._modelview
@@ -779,6 +781,30 @@
 		            rootContext._updateFocus();
 		            rootContext._postRender();
 		            this._context = rootContext;
+		        },
+		        replaceIn: function (elementOrSelector) {
+		            var rootElement = $(elementOrSelector), rootContext = new ViewContext({
+		                    element: rootElement,
+		                    target: this._modelview,
+		                    template: this._template,
+		                    context: this._modelview
+		                });
+		            context(rootContext);
+		            rootElement.html(rootContext.render());
+		            context.pop();
+		            rootContext._isAttached = true;
+		            rootContext._updateEvents();
+		            rootContext._updateFocus();
+		            rootContext._postRender();
+		            this._context = rootContext;
+		        },
+		        remove: function () {
+		            var context = this._context;
+		            if (context) {
+		                context.dispose();
+		                context._isAttached = false;
+		            }
+		            this._context = null;
 		        }
 		    });
 		module.exports = View;
@@ -828,12 +854,14 @@
 		    }
 		    return _TOP;
 		}
-		_.extend(context, {pop: function () {
+		_.extend(context, {
+		    pop: function () {
 		        var top = context();
 		        if (top)
 		            context(top['$parentContext']);
 		        return top;
-		    }});
+		    }
+		});
 		module.exports = context;
 	});
 
@@ -841,7 +869,7 @@
 		var Handlebars = require('handlebars'), MetamorphContext = require('lib/context/MetamorphContext.js');
 		var TextContext = MetamorphContext.extend({
 		        renderContent: function (value) {
-		            return !!value ? Handlebars.Utils.escapeExpression(value.toString()) : '';
+		            return !(!value) ? Handlebars.Utils.escapeExpression(value.toString()) : '';
 		        },
 		        targetUpdated: function () {
 		            this._super();
@@ -910,7 +938,9 @@
 		var TemplateContext = MetamorphContext.extend({
 		        init: function (options) {
 		            this._super(options);
-		            _.defaults(options, {template: this._target});
+		            _.defaults(options, {
+		                template: this._target
+		            });
 		            this._template = options.template;
 		            this._context = options.context;
 		        },
@@ -931,6 +961,10 @@
 		                if (disposalCandidates[i])
 		                    this._subscriptions.splice(i, 1)[0].dispose();
 		            }
+		            if (_.isObservable(value.template))
+		                value.template = value.template();
+		            if (_.isSubscribable(value.context))
+		                value.context = value.context();
 		            return value;
 		        },
 		        renderContent: function (desc) {
@@ -947,25 +981,33 @@
 	uncommon.define('lib/context/AttributeContext.js', function(require, module) {
 		var _ = require('underscore'), $ = require('jquery'), BindingContext = require('lib/context/BindingContext.js');
 		RenderContext = require('lib/context/RenderContext.js');
-		var ValueContext = BindingContext.extend({targetUpdated: function () {
+		var ValueContext = BindingContext.extend({
+		        targetUpdated: function () {
 		            this.$parentContext.isDirty(true);
 		            this._super();
-		        }});
+		        }
+		    });
 		var AttributeContext = RenderContext.extend({
 		        init: function (options) {
 		            this._super(options);
 		            _.defaults(options, {
 		                bind_name: 'attr-bind',
 		                bind_id: _.uniqueId('hb'),
-		                name: 'undefined_attribute'
+		                name: _.uniqueId('undefined_attr'),
+		                sharing_bind: false
 		            });
+		            this._sharing_bind = options.sharing_bind;
 		            this._bind_name = options.bind_name;
 		            this._bind_id = options.bind_id;
 		            this._name = options.name;
 		        },
 		        render: function () {
-		            var value = this._getAttributeValue();
-		            return value !== null && value !== undefined ? this._name + '="' + value + '"' : '';
+		            var value = this._getAttributeValue(), ret = ' ';
+		            if (!this._sharing_bind)
+		                ret += this._bind_name + '="' + this._bind_id + '" ';
+		            if (value !== null && value !== undefined)
+		                ret += this._name + '="' + value + '"';
+		            return ret;
 		        },
 		        rerender: function () {
 		            if (this.bound()) {
@@ -1018,7 +1060,9 @@
 		var ValueContext = UpdatingContext.extend({
 		        init: function (options) {
 		            this._super(options);
-		            _.defaults(options, {update: 'change'});
+		            _.defaults(options, {
+		                update: 'change'
+		            });
 		            if (!_.include(VALID_UPDATES, options.update))
 		                throw new Error('The update policy "' + options.update + '" is not supported by {{value}}');
 		        },
@@ -1055,14 +1099,14 @@
 		            var target = this.target(), value = _.isFunction(target) ? target() : target, ret = ' ';
 		            if (!this._sharing_bind)
 		                ret += this._bind_name + '="' + this._bind_id + '" ';
-		            if (!!value)
+		            if (!(!value))
 		                ret += this._name + ' ';
 		            return ret;
 		        },
 		        rerender: function () {
 		            if (this.bound()) {
 		                var target = this.target(), value = _.isFunction(target) ? target() : target;
-		                $('[' + this._bind_name + '="' + this._bind_id + '"]').prop(this._name, !!value);
+		                $('[' + this._bind_name + '="' + this._bind_id + '"]').prop(this._name, !(!value));
 		            }
 		        }
 		    });
@@ -1099,7 +1143,9 @@
 		            this._updatePolicy = options.update;
 		            this._is_updating = false;
 		            if (!_.isArray(this._updatePolicy))
-		                this._updatePolicy = [this._updatePolicy];
+		                this._updatePolicy = [
+		                    this._updatePolicy
+		                ];
 		        },
 		        renderValue: function (value) {
 		            throw new Error('UpdatingContext is an abstract type and does not implement method "renderValue"');
@@ -1230,9 +1276,11 @@
 
 	uncommon.define('lib/observe/subscribable.js', function(require, module) {
 		var _ = require('underscore'), arrays = require('lib/util/arrays.js'), Subscription = require('lib/observe/Subscription.js');
-		_.mixin({'isSubscribable': function (instance) {
-		        return !!instance && typeof instance.subscribe == 'function' && typeof instance['notifySubscribers'] == 'function';
-		    }});
+		_.mixin({
+		    'isSubscribable': function (instance) {
+		        return !(!instance) && typeof instance.subscribe == 'function' && typeof instance['notifySubscribers'] == 'function';
+		    }
+		});
 		var defaultEvent = 'change';
 		var subscribable = function () {
 		    this._subscriptions = {};
@@ -1293,6 +1341,131 @@
 		        }
 		    };
 		module.exports = dependencyDetection;
+	});
+
+	uncommon.define('lib/context/ViewContext.js', function(require, module) {
+		var _ = require('underscore'), $ = require('jquery'), humble = require('humble'), TemplateContext = require('lib/context/TemplateContext.js');
+		var EVENT_ATTRS = [
+		        'event-bind',
+		        'update-bind',
+		        'value-bind',
+		        'focus-bind',
+		        'selected-bind'
+		    ];
+		function getEventBindings(element) {
+		    var attrs = EVENT_ATTRS, ids = [], id, i, len = attrs.length;
+		    for (i = 0; i < len; i++) {
+		        id = element.attr(attrs[i]);
+		        if (_.isString(id))
+		            ids.push(id);
+		    }
+		    return ids;
+		}
+		function createEventHandler(context) {
+		    var eventHandler = function (event) {
+		        var callbacksById, element, ids, i, len, info, ret;
+		        callbacksById = context._events[event.type];
+		        if (callbacksById === undefined)
+		            return;
+		        element = $(event.target);
+		        while (!element.is(context._element)) {
+		            ids = getEventBindings(element);
+		            for (i = 0, len = ids.length; i < len; i++) {
+		                info = callbacksById[ids[i]];
+		                ret = undefined;
+		                if (info && _.isFunction(info.callback)) {
+		                    ret = info.callback(event, info.data);
+		                }
+		            }
+		            if (ret === false)
+		                return false;
+		            else if (event.isPropagationStopped())
+		                return;
+		            else {
+		                element = element.parent();
+		                if (element.length == 0)
+		                    return;
+		            }
+		        }
+		    };
+		    return eventHandler;
+		}
+		var ViewContext = TemplateContext.extend({
+		        init: function (options) {
+		            this._super(options);
+		            this._element = options.element;
+		            this._events = {};
+		            this._handledEvents = [];
+		            this._isAttached = false;
+		            this._postRenderCallbacks = [];
+		            this._eventHandler = createEventHandler(this);
+		        },
+		        clean: function () {
+		            this._super();
+		            this._updateFocus();
+		            this._postRender();
+		        },
+		        dispose: function () {
+		            this._events = {};
+		            this._updateEvents();
+		            var metamorph = this._metamorph;
+		            if (metamorph && !metamorph.isRemoved())
+		                metamorph.remove();
+		            this._super();
+		        },
+		        registerEvent: function (id, event, callback, data) {
+		            var callbacksById = this._events[event];
+		            if (callbacksById === undefined)
+		                this._events[event] = callbacksById = {};
+		            callbacksById[id] = {
+		                callback: callback,
+		                data: data
+		            };
+		            if (this._isAttached)
+		                this._updateEvents();
+		        },
+		        disposeEvent: function (id, event) {
+		            var callbacksById = this._events[event];
+		            if (callbacksById !== undefined && callbacksById.hasOwnProperty(id))
+		                delete callbacksById[id];
+		            if (this._isAttached)
+		                this._updateEvents();
+		        },
+		        setFocus: function (elementOrSelector) {
+		            this._toFocus = elementOrSelector;
+		        },
+		        doPostRender: function (callback, context) {
+		            if (_.isFunction(callback)) {
+		                this._postRenderCallbacks.push({
+		                    callback: callback,
+		                    context: context
+		                });
+		            }
+		        },
+		        _updateFocus: function () {
+		            if (this._toFocus) {
+		                var activeElement = $(document.activeElement), element = $(this._toFocus).get(0), isFocused = activeElement.is(element);
+		                if (!isFocused)
+		                    element.focus();
+		                this._toFocus = null;
+		            }
+		        },
+		        _updateEvents: function () {
+		            var oldEvents = this._handledEvents, newEvents = _.keys(this._events), toAdd = _.difference(newEvents, oldEvents), toRemove = _.difference(oldEvents, newEvents);
+		            if (toRemove.length > 0)
+		                this._element.off(toRemove.join(' '));
+		            if (toAdd.length > 0)
+		                this._element.on(toAdd.join(' '), this._eventHandler);
+		            this._handledEvents = newEvents;
+		        },
+		        _postRender: function () {
+		            var callbacks = this._postRenderCallbacks.splice(0, this._postRenderCallbacks.length);
+		            _.each(callbacks, function (postRender) {
+		                postRender.callback.call(postRender.context);
+		            });
+		        }
+		    });
+		module.exports = ViewContext;
 	});
 
 	uncommon.define('lib/util/metamorph.js', function(require, module) {
@@ -1705,7 +1878,7 @@
 		            this._target = options.target;
 		            this._subscriptions = [];
 		            this.bind(options.bind);
-		            if (!!options['parent']) {
+		            if (!(!options['parent'])) {
 		                var parent = options['parent'];
 		                this['$rootContext'] = parent['$rootContext'];
 		                this['$parentContext'] = parent;
@@ -1717,7 +1890,7 @@
 		            }
 		            this.children = [];
 		            this._isDirty = false;
-		            if (!!options['symbol']) {
+		            if (!(!options['symbol'])) {
 		                if (_.isString(options['symbol'])) {
 		                    var i, len, label, labels = options.symbol.split(',');
 		                    for (i = 0, len = labels.length; i < len; i++) {
@@ -1739,7 +1912,7 @@
 		        bind: function () {
 		            if (arguments.length > 0) {
 		                var parentBinding = !this.$parentContext ? true : this.$parentContext.bind();
-		                this._bind = parentBinding && !!arguments[0];
+		                this._bind = parentBinding && !(!arguments[0]);
 		            } else
 		                return this._bind;
 		        },
@@ -1748,7 +1921,7 @@
 		        },
 		        isDirty: function () {
 		            if (arguments.length > 0)
-		                this._isDirty = !!arguments[0];
+		                this._isDirty = !(!arguments[0]);
 		            else
 		                return this._isDirty;
 		        },
@@ -1950,9 +2123,11 @@
 		var OptionListContext = MetamorphContext.extend({
 		        init: function (options) {
 		            this._super(options);
-		            _.defaults(options, {text: function (item) {
+		            _.defaults(options, {
+		                text: function (item) {
 		                    return nullSafe.toString(item);
-		                }});
+		                }
+		            });
 		            var text = _.isSubscribable(text) ? options.text() : options.text;
 		            if (_.isString(text) || _.isNumber(text)) {
 		                var propertyName = text;
@@ -1998,10 +2173,14 @@
 		            this._registerEvents(target);
 		            if (_.isFunction(this.$rootContext.doPostRender)) {
 		                this.$rootContext.doPostRender(function select_PostRender() {
-		                    $('script#' + id).parent('select').attr(name, id);
+		                    var element = $('script#' + id).parent('select'), isMultiple = element.prop('multiple'), model = _.isFunction(this._model) ? this._model() : this._model, illegalOptions = [];
 		                    this._is_updating = true;
-		                    var model = _.isFunction(this._model) ? this._model() : this._model, illegalOptions = _.difference(value, model);
-		                    value = _.without(value, illegalOptions);
+		                    element.attr(name, id);
+		                    if (isMultiple) {
+		                        illegalOptions = _.difference(value, model);
+		                        value = _.without(value, illegalOptions);
+		                    } else if (!_.contains(model, value))
+		                        value = null;
 		                    this.pushValue(value);
 		                    if (_.isSubscribable(target))
 		                        _.isObservableArray(target) ? target.removeAll(illegalOptions) : target(value);
@@ -2017,7 +2196,9 @@
 		            else if (_.isArray(value))
 		                selected = value;
 		            else
-		                selected = [value];
+		                selected = [
+		                    value
+		                ];
 		            selected = _.reduce(selected, function (memo, next) {
 		                var i = _.indexOf(model, next);
 		                if (i > -1)
@@ -2032,7 +2213,7 @@
 		                optionElements.filter('[value="-1"]').prop('selected', true);
 		        },
 		        pullValue: function () {
-		            var element = dom.boundElement(this), isMultiple = element.prop('multiple'), selectedOptions = element.children('option:selected'), model = _.isSubscribable(this._model) ? this._model() : this.model, index, value = [];
+		            var element = dom.boundElement(this), isMultiple = element.prop('multiple'), selectedOptions = element.children('option:selected'), model = _.isSubscribable(this._model) ? this._model() : this._model, index, value = [];
 		            selectedOptions.each(function () {
 		                index = $(this).val();
 		                if (index >= 0)
@@ -2048,11 +2229,13 @@
 
 	uncommon.define('lib/util/arrays.js', function(require, module) {
 		var _ = require('underscore');
-		var arrays = {remove: function (array, itemToRemove) {
+		var arrays = {
+		        remove: function (array, itemToRemove) {
 		            var index = _.indexOf(array, itemToRemove);
 		            if (index >= 0)
 		                array.splice(index, 1);
-		        }};
+		        }
+		    };
 		_.mixin(arrays);
 		module.exports = arrays;
 	});
