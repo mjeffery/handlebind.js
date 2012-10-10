@@ -1,7 +1,7 @@
 {
 	"name": "Handlebind",
 	"version": "0.0.1",
-	"output": "dist",
+	"output": "dist/Handlebind.js",
 	"main": "index.js",
 	"dependencies": {
 		"underscore": "_",
